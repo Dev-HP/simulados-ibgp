@@ -40,24 +40,21 @@ docker-compose exec api python scripts/seed_database.py
 
 ## 🌐 Hospedar no GitHub e Deploy Online
 
-### Opção 1: Script Automático (Recomendado)
+### 🚀 Deploy em 3 Passos (~30 minutos)
 
-**Windows:**
+#### 1️⃣ Subir para GitHub (5 min)
+
+**Automático (Recomendado)**:
 ```bash
+# Windows
 setup_github.bat
-```
 
-**Linux/Mac:**
-```bash
+# Linux/Mac
 bash setup_github.sh
 ```
 
-### Opção 2: Manual
-
+**Manual**:
 ```bash
-# 1. Criar repositório no GitHub (https://github.com/new)
-
-# 2. Inicializar e fazer push
 git init
 git add .
 git commit -m "Initial commit: Sistema completo de simulados IBGP"
@@ -66,30 +63,43 @@ git remote add origin https://github.com/SEU-USUARIO/simulados-ibgp.git
 git push -u origin main
 ```
 
-### Deploy Online Gratuito
+#### 2️⃣ Deploy Online (10 min)
 
-Escolha uma plataforma:
+**Render.com** (Recomendado):
+1. Acesse https://render.com
+2. Conecte GitHub
+3. Deploy backend (Docker)
+4. Criar PostgreSQL + Redis
+5. Deploy frontend (Static)
+6. Popular banco: `python scripts/seed_database.py`
 
-1. **Render.com** (Recomendado - Mais fácil)
-   - Acesse: https://render.com
-   - Conecte seu repositório GitHub
-   - Deploy automático com Docker
-   - PostgreSQL incluído gratuitamente
+**Railway.app** (Mais rápido):
+1. Acesse https://railway.app
+2. Deploy from GitHub
+3. Detecta docker-compose automaticamente
+4. Pronto!
 
-2. **Railway.app** (Muito simples)
-   - Acesse: https://railway.app
-   - Deploy em 1 clique
-   - Detecta docker-compose automaticamente
+#### 3️⃣ Testar (2 min)
 
-3. **Fly.io** (Rápido e global)
-   - Instale CLI: `curl -L https://fly.io/install.sh | sh`
-   - Deploy: `fly launch`
+Acesse sua URL e teste com:
+- Username: `teste`
+- Password: `senha123`
 
-4. **Heroku** (Clássico)
-   - Instale CLI e faça deploy
-   - Addons gratuitos disponíveis
+### 📖 Guias Detalhados
 
-**📖 Guia Completo**: Veja [GITHUB_SETUP.md](GITHUB_SETUP.md) para instruções detalhadas de cada plataforma.
+- **Passo a passo completo**: [INSTRUCOES_COMPLETAS.md](INSTRUCOES_COMPLETAS.md) ⭐
+- **Deploy rápido**: [DEPLOY_RAPIDO.md](DEPLOY_RAPIDO.md)
+- **Todas as opções**: [GITHUB_SETUP.md](GITHUB_SETUP.md)
+- **Deploy avançado**: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+### 🎯 Plataformas Gratuitas
+
+| Plataforma | Facilidade | Velocidade | Recomendado |
+|------------|-----------|-----------|-------------|
+| **Render.com** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ✅ Sim |
+| **Railway.app** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ✅ Sim |
+| **Fly.io** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Avançado |
+| **Heroku** | ⭐⭐⭐⭐ | ⭐⭐⭐ | Clássico |
 
 ## 📋 Workflow Completo
 
