@@ -228,3 +228,40 @@ async def improve_question(
     except Exception as e:
         logger.error(f"Error improving question: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/gemini-stats")
+async def get_gemini_stats():
+    """
+    Retorna estatísticas de uso da API Gemini.
+    Mostra limites do free tier e uso atual.
+    """
+    from services.rate_limiter import gemini_rate_limiter
+    
+    stats = gemini_rate_limiter.get_stats()
+    
+    return {
+        "status": "ok",
+        "tier": "free",
+        "limits": {
+            "per_minute": stats['limit_per_minute'],
+            "per_day": stats['limit_per_day']
+        },
+        "usage": {
+            "last_minute": stats['requests_last_minute'],
+            "today": stats['requests_today'],
+            "total": stats['total_requests'],
+            "blocked": stats['blocked_requests']
+        },
+        "remaining": {
+            "minute": stats['remaining_minute'],
+            "day": stats['remaining_day']
+        },
+        "percentage": {
+            "minute": round(stats['usage_percentage_minute'], 2),
+            "day": round(stats['usage_percentage_day'], 2)
+        },
+        "warnings": [
+            "⚠️ Limite por minuto atingido" if stats['remaining_minute'] < 5 else None,
+            "⚠️ Limite diário próximo" if stats['remaining_day'] < 100 else None
+        ]
+    }

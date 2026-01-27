@@ -3,9 +3,11 @@ import os
 from typing import List, Dict, Any, Optional
 import google.generativeai as genai
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 
 from models import Question, Topic, DifficultyLevel, QAStatus
 from services.qa_validator import QAValidator
+from services.rate_limiter import gemini_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +45,17 @@ class GeminiQuestionGenerator:
         prompt = self._build_prompt(topic, quantity, reference_questions, difficulty)
         
         try:
+            # Verificar rate limit
+            can_make, error_msg = gemini_rate_limiter.can_make_request()
+            if not can_make:
+                logger.error(f"Rate limit exceeded: {error_msg}")
+                raise HTTPException(status_code=429, detail=error_msg)
+            
             # Gerar com Gemini
             response = self.model.generate_content(prompt)
+            
+            # Registrar requisição
+            gemini_rate_limiter.record_request()
             
             # Parsear resposta
             questions_data = self._parse_gemini_response(response.text, topic)
@@ -241,7 +252,17 @@ Retorne a questão melhorada no mesmo formato.
 """
         
         try:
+            # Verificar rate limit
+            can_make, error_msg = gemini_rate_limiter.can_make_request()
+            if not can_make:
+                logger.error(f"Rate limit exceeded: {error_msg}")
+                raise HTTPException(status_code=429, detail=error_msg)
+            
             response = self.model.generate_content(prompt)
+            
+            # Registrar requisição
+            gemini_rate_limiter.record_request()
+            
             improved_data = self._parse_gemini_response(response.text, question.topic)
             
             if improved_data:

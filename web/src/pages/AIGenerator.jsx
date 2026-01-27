@@ -46,6 +46,20 @@ export default function AIGenerator() {
     }
   })
 
+  // Buscar status do Gemini
+  const { data: geminiStats } = useQuery({
+    queryKey: ['gemini-stats'],
+    queryFn: async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/gemini-stats`)
+        return response.data
+      } catch (error) {
+        return null
+      }
+    },
+    refetchInterval: 30000 // Atualizar a cada 30s
+  })
+
   const handleImport = async () => {
     if (!importFile) return
 
@@ -100,6 +114,8 @@ export default function AIGenerator() {
       const errorMsg = error.response?.data?.detail || error.message
       if (errorMsg.includes('GEMINI_API_KEY')) {
         setGenerateMessage('❌ Chave do Gemini não configurada. Configure no Render.')
+      } else if (error.response?.status === 429) {
+        setGenerateMessage(`❌ ${errorMsg}\n\n💡 O sistema usa o tier gratuito do Gemini que tem limites de uso.`)
       } else {
         setGenerateMessage(`❌ Erro: ${errorMsg}`)
       }
@@ -132,6 +148,94 @@ export default function AIGenerator() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Status do Gemini API */}
+      {geminiStats && (
+        <div className="card">
+          <h2>🤖 Status da API Gemini (Free Tier)</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+            <div style={{ padding: '1rem', background: '#fff3cd', borderRadius: '8px' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0' }}>Limite por Minuto</h4>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                {geminiStats.remaining.minute} / {geminiStats.limits.per_minute}
+              </div>
+              <div style={{ 
+                marginTop: '0.5rem', 
+                height: '8px', 
+                background: '#eee', 
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{ 
+                  height: '100%', 
+                  width: `${geminiStats.percentage.minute}%`,
+                  background: geminiStats.percentage.minute > 80 ? '#dc3545' : '#28a745',
+                  transition: 'width 0.3s'
+                }} />
+              </div>
+              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+                {geminiStats.usage.last_minute} requisições no último minuto
+              </p>
+            </div>
+
+            <div style={{ padding: '1rem', background: '#d1ecf1', borderRadius: '8px' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0' }}>Limite Diário</h4>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                {geminiStats.remaining.day} / {geminiStats.limits.per_day}
+              </div>
+              <div style={{ 
+                marginTop: '0.5rem', 
+                height: '8px', 
+                background: '#eee', 
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{ 
+                  height: '100%', 
+                  width: `${geminiStats.percentage.day}%`,
+                  background: geminiStats.percentage.day > 80 ? '#dc3545' : '#28a745',
+                  transition: 'width 0.3s'
+                }} />
+              </div>
+              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+                {geminiStats.usage.today} requisições hoje
+              </p>
+            </div>
+
+            <div style={{ padding: '1rem', background: '#d4edda', borderRadius: '8px' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0' }}>Total de Uso</h4>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                {geminiStats.usage.total}
+              </div>
+              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+                Requisições totais
+              </p>
+              {geminiStats.usage.blocked > 0 && (
+                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#dc3545' }}>
+                  ⚠️ {geminiStats.usage.blocked} bloqueadas por limite
+                </p>
+              )}
+            </div>
+          </div>
+
+          {geminiStats.warnings.some(w => w) && (
+            <div style={{ 
+              marginTop: '1rem', 
+              padding: '1rem', 
+              background: '#fff3cd', 
+              borderRadius: '4px',
+              border: '1px solid #ffc107'
+            }}>
+              <strong>⚠️ Avisos:</strong>
+              <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.5rem' }}>
+                {geminiStats.warnings.filter(w => w).map((warning, i) => (
+                  <li key={i}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
