@@ -53,6 +53,7 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
+@app.get("/api/seed-database")
 @app.post("/api/seed-database")
 async def seed_database_endpoint(db: Session = Depends(get_db)):
     """
