@@ -3,18 +3,32 @@
 [![CI/CD](https://github.com/seu-usuario/simulados-ibgp/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/seu-usuario/simulados-ibgp/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Sistema completo de treino adaptativo para concursos públicos com ingestão automática de editais, geração de questões no estilo IBGP, simulados configuráveis e feedback detalhado.
+Sistema completo de treino adaptativo para concursos públicos com **geração de questões usando IA (Gemini Pro)**, ingestão automática de editais, simulados configuráveis e feedback detalhado.
 
 ## ✨ Destaques
 
+- 🤖 **IA Gemini Pro**: Gera questões realistas baseadas em provas reais
+- 📥 **Importação de Provas**: Upload de questões reais (PDF/TXT)
 - 🎯 **Ingestão Automática**: Upload de editais TXT/PDF com parse hierárquico
-- 🤖 **Geração Inteligente**: 30+ questões por tópico no estilo IBGP
 - ✅ **Validação QA**: Sistema automático de qualidade de questões
 - 📊 **Simulados Configuráveis**: Oficiais e customizados
 - 🧠 **Treino Adaptativo**: Algoritmo SRS para otimizar aprendizado
 - 📈 **Analytics Completo**: Métricas detalhadas e plano de estudo
 - 🔄 **Export Fácil**: GIFT, CSV, JSON
 - 🐳 **Docker Ready**: Deploy em 3 comandos
+
+## 🤖 Novo: Geração de Questões com IA
+
+O sistema agora usa **Gemini Pro** para gerar questões realistas:
+
+1. **Importe questões reais** de provas anteriores
+2. **IA aprende o estilo** e padrões das questões
+3. **Gera questões novas** no mesmo formato
+4. **Validação automática** de qualidade
+
+**Custo**: ~$0.25 por 1000 questões (praticamente gratuito!)
+
+📚 [Guia Completo de IA](docs/GUIA_COMPLETO_IA.md)
 
 ## 🚀 Quickstart Local (3 minutos)
 
@@ -24,10 +38,13 @@ git clone <repo-url>
 cd simulados-ibgp
 cp .env.example .env
 
-# 2. Inicie os containers
+# 2. Adicione sua chave do Gemini no .env
+GEMINI_API_KEY=sua_chave_aqui
+
+# 3. Inicie os containers
 docker-compose up --build
 
-# 3. Popule com dados de teste (opcional)
+# 4. Popule com dados de teste (opcional)
 docker-compose exec api python scripts/seed_database.py
 ```
 
@@ -36,7 +53,7 @@ docker-compose exec api python scripts/seed_database.py
 - 🔌 API: http://localhost:8000
 - 📚 Swagger: http://localhost:8000/docs
 
-**Credenciais de teste**: `teste` / `senha123`
+**Credenciais de teste**: `teste` / `teste123`
 
 ## 🌐 Hospedar no GitHub e Deploy Online
 

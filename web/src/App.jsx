@@ -7,6 +7,7 @@ import SimuladoExec from './pages/SimuladoExec'
 import Results from './pages/Results'
 import Analytics from './pages/Analytics'
 import Upload from './pages/Upload'
+import AIGenerator from './pages/AIGenerator'
 import Login from './pages/Login'
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
         <div className="nav-links">
           <Link to="/">Home</Link>
           <Link to="/upload">Upload Edital</Link>
+          <Link to="/ai-generator">🤖 IA Generator</Link>
           <Link to="/simulados">Simulados</Link>
           <Link to="/analytics">Analytics</Link>
           <button 
@@ -75,6 +77,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/upload" element={<Upload />} />
+          <Route path="/ai-generator" element={<AIGenerator />} />
           <Route path="/simulados" element={<Simulados />} />
           <Route path="/simulados/:id" element={<SimuladoExec />} />
           <Route path="/results" element={<Results />} />

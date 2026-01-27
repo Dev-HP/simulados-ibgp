@@ -1,0 +1,81 @@
+PROVA DE TÉCNICO EM INFORMÁTICA - EXEMPLO
+
+QUESTÃO 1
+Em relação aos componentes de hardware de um computador, é correto afirmar que:
+A) A memória RAM é uma memória volátil que perde seu conteúdo quando o computador é desligado
+B) A memória ROM pode ser facilmente regravada pelo usuário
+C) O processador é responsável apenas por operações matemáticas
+D) O disco rígido é mais rápido que a memória RAM
+Gabarito: A
+
+QUESTÃO 2
+Sobre sistemas operacionais Linux, o comando usado para listar arquivos e diretórios é:
+A) dir
+B) list
+C) ls
+D) show
+Gabarito: C
+
+QUESTÃO 3
+Em redes de computadores, o protocolo TCP/IP é responsável por:
+A) Apenas a transmissão de e-mails
+B) A comunicação entre dispositivos na internet
+C) Somente a navegação web
+D) Exclusivamente transferência de arquivos
+Gabarito: B
+
+QUESTÃO 4
+Sobre banco de dados relacionais, a linguagem SQL é utilizada para:
+A) Apenas criar tabelas
+B) Manipular e consultar dados em bancos de dados
+C) Somente fazer backup
+D) Exclusivamente deletar registros
+Gabarito: B
+
+QUESTÃO 5
+Em segurança da informação, um firewall tem como principal função:
+A) Aumentar a velocidade da internet
+B) Armazenar senhas
+C) Controlar o tráfego de rede e bloquear acessos não autorizados
+D) Fazer backup automático
+Gabarito: C
+
+QUESTÃO 6
+Sobre algoritmos e programação, uma estrutura de repetição (loop) é utilizada para:
+A) Executar um bloco de código apenas uma vez
+B) Executar um bloco de código múltiplas vezes
+C) Declarar variáveis
+D) Finalizar o programa
+Gabarito: B
+
+QUESTÃO 7
+Em relação ao Windows, o Gerenciador de Tarefas permite:
+A) Apenas desligar o computador
+B) Visualizar e gerenciar processos em execução
+C) Somente instalar programas
+D) Exclusivamente formatar o disco
+Gabarito: B
+
+QUESTÃO 8
+Sobre protocolos de rede, o HTTP é utilizado para:
+A) Enviar e-mails
+B) Transferir páginas web
+C) Conectar impressoras
+D) Fazer chamadas de voz
+Gabarito: B
+
+QUESTÃO 9
+Em banco de dados, uma chave primária (PRIMARY KEY) é:
+A) Opcional em todas as tabelas
+B) Um campo que identifica unicamente cada registro
+C) Sempre um campo de texto
+D) Usado apenas para ordenação
+Gabarito: B
+
+QUESTÃO 10
+Sobre backup de dados, a estratégia 3-2-1 recomenda:
+A) 3 cópias, 2 mídias diferentes, 1 cópia externa
+B) 3 servidores, 2 usuários, 1 senha
+C) 3 dias, 2 horas, 1 minuto
+D) 3 arquivos, 2 pastas, 1 disco
+Gabarito: A
