@@ -76,7 +76,7 @@ async def seed_database_endpoint(db: Session = Depends(get_db)):
         user = User(
             email="teste@example.com",
             username="teste",
-            hashed_password=get_password_hash("senha123"),
+            hashed_password=get_password_hash("teste123"),
             full_name="Usuário Teste"
         )
         db.add(user)
@@ -227,7 +227,7 @@ async def seed_database_endpoint(db: Session = Depends(get_db)):
             },
             "credentials": {
                 "username": "teste",
-                "password": "senha123"
+                "password": "teste123"
             }
         }
         
