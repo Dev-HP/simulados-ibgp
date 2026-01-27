@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
+import { API_URL } from '../config'
 
 export default function Simulados() {
   const [showCreate, setShowCreate] = useState(false)
@@ -13,14 +14,14 @@ export default function Simulados() {
   const { data: simulados, refetch } = useQuery({
     queryKey: ['simulados'],
     queryFn: async () => {
-      const response = await axios.get('/api/simulados')
+      const response = await axios.get(`${API_URL}/api/simulados`)
       return response.data
     }
   })
 
   const handleCreate = async () => {
     try {
-      await axios.post('/api/create-simulado', formData)
+      await axios.post(`${API_URL}/api/create-simulado`, formData)
       setShowCreate(false)
       refetch()
     } catch (error) {

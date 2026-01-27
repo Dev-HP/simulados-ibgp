@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
+import { API_URL } from '../config'
 
 export default function SimuladoExec() {
   const { id } = useParams()
@@ -14,7 +15,7 @@ export default function SimuladoExec() {
   }, [id])
 
   const loadSimulado = async () => {
-    const response = await axios.get(`/api/simulados/${id}`)
+    const response = await axios.get(`${API_URL}/api/simulados/${id}`)
     setSimulado(response.data)
   }
 
@@ -22,7 +23,7 @@ export default function SimuladoExec() {
     if (!selectedAnswer) return
 
     const question = simulado.questions[currentQuestion]
-    const response = await axios.post(`/api/simulados/${id}/answer`, {
+    const response = await axios.post(`${API_URL}/api/simulados/${id}/answer`, {
       question_id: question.id,
       resposta: selectedAnswer
     })

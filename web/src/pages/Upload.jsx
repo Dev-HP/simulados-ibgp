@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
+import { API_URL } from '../config'
 
 export default function Upload() {
   const [file, setFile] = useState(null)
@@ -14,11 +15,11 @@ export default function Upload() {
     formData.append('file', file)
 
     try {
-      const response = await axios.post('/api/upload-syllabus', formData)
+      const response = await axios.post(`${API_URL}/api/upload-syllabus`, formData)
       setMessage(response.data.message)
       
       // Gerar banco automaticamente
-      await axios.post('/api/generate-bank', {
+      await axios.post(`${API_URL}/api/generate-bank`, {
         min_questions_per_topic: 10
       })
       
