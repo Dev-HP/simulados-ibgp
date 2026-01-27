@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { API_URL } from '../config'
 
@@ -74,9 +75,9 @@ export default function Simulados() {
           <div key={sim.id} className="card">
             <h3>{sim.nome}</h3>
             <p>{sim.numero_questoes} questões • {sim.tempo_total} minutos</p>
-            <a href={`/simulados/${sim.id}`}>
+            <Link to={`/simulados/${sim.id}`}>
               <button className="btn btn-primary">Iniciar</button>
-            </a>
+            </Link>
           </div>
         ))}
       </div>
