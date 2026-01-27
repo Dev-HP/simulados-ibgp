@@ -72,11 +72,14 @@ async def seed_database_endpoint(db: Session = Depends(get_db)):
                 "message": "Banco de dados já foi populado anteriormente"
             }
         
-        # Criar usuário de teste
+        # Criar usuário de teste com senha curta (bcrypt tem limite de 72 bytes)
+        senha_teste = "teste123"[:72]  # Garantir que não exceda 72 bytes
+        hashed_pwd = get_password_hash(senha_teste)
+        
         user = User(
             email="teste@example.com",
             username="teste",
-            hashed_password=get_password_hash("teste123"),
+            hashed_password=hashed_pwd,
             full_name="Usuário Teste"
         )
         db.add(user)
