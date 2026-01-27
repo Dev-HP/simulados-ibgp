@@ -18,7 +18,7 @@ echo.
 
 echo [2/3] Populando banco de dados...
 echo.
-curl -s https://simulados-ibgp.onrender.com/api/seed-database
+curl -s https://simulados-ibgp.onrender.com/api/seed-simple
 echo.
 echo.
 

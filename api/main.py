@@ -53,6 +53,43 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
+@app.get("/api/seed-simple")
+async def seed_simple(db: Session = Depends(get_db)):
+    """
+    Endpoint simplificado para criar apenas o usuário de teste.
+    """
+    try:
+        from models import User
+        import bcrypt
+        
+        # Verificar se já existe
+        existing = db.query(User).filter(User.username == "teste").first()
+        if existing:
+            return {"status": "exists", "message": "Usuário já existe"}
+        
+        # Criar hash manualmente com bcrypt
+        senha = "teste123".encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(senha, salt).decode('utf-8')
+        
+        user = User(
+            email="teste@example.com",
+            username="teste",
+            hashed_password=hashed,
+            full_name="Usuário Teste"
+        )
+        db.add(user)
+        db.commit()
+        
+        return {
+            "status": "success",
+            "message": "Usuário criado!",
+            "credentials": {"username": "teste", "password": "teste123"}
+        }
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": str(e)}
+
 @app.get("/api/seed-database")
 @app.post("/api/seed-database")
 async def seed_database_endpoint(db: Session = Depends(get_db)):
