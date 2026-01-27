@@ -73,10 +73,11 @@ async def seed_database_endpoint(db: Session = Depends(get_db)):
             }
         
         # Criar usuário de teste
+        password = "senha123"[:72]  # Bcrypt limit
         user = User(
             email="teste@example.com",
             username="teste",
-            hashed_password=get_password_hash("senha123"),
+            hashed_password=get_password_hash(password),
             full_name="Usuário Teste"
         )
         db.add(user)
