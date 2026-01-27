@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/simulados-ibgp/',
+  base: process.env.VITE_BASE_PATH || '/',
   server: {
     host: true,
     port: 3000,

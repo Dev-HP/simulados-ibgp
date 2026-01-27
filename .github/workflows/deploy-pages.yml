@@ -34,6 +34,7 @@ jobs:
       - name: Build
         env:
           VITE_API_URL: https://simulados-api.onrender.com
+          VITE_BASE_PATH: /simulados-ibgp/
         run: |
           cd web
           npm run build
