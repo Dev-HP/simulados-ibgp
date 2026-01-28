@@ -64,6 +64,115 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
+@app.get("/api/initialize")
+async def initialize_system(db: Session = Depends(get_db)):
+    """
+    Inicializa o sistema: cria tópicos e usuário de teste.
+    Endpoint público para facilitar setup inicial.
+    """
+    try:
+        from models import User, Topic
+        from passlib.context import CryptContext
+        
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        results = {"topics": 0, "user": "exists"}
+        
+        # Criar tópicos se não existirem
+        topics_count = db.query(Topic).count()
+        if topics_count == 0:
+            # Importar e executar criar_topicos
+            import sys
+            import os
+            sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+            
+            # Criar tópicos manualmente
+            topicos_data = [
+                # Informática (50% - 27 tópicos)
+                ("Informática", "Hardware", "Componentes internos (CPU, RAM, HD, SSD, placa-mãe)", None),
+                ("Informática", "Hardware", "Periféricos de entrada e saída", None),
+                ("Informática", "Redes", "Conceitos básicos de redes (LAN, WAN, MAN)", None),
+                ("Informática", "Redes", "Protocolos TCP/IP", None),
+                ("Informática", "Redes", "Equipamentos de rede (switch, roteador, hub)", None),
+                ("Informática", "Sistemas Operacionais", "Windows 10/11", None),
+                ("Informática", "Sistemas Operacionais", "Linux básico", None),
+                ("Informática", "Microsoft Office", "Word (formatação, tabelas, estilos)", None),
+                ("Informática", "Microsoft Office", "Excel (fórmulas, funções, gráficos)", None),
+                ("Informática", "Microsoft Office", "PowerPoint (apresentações)", None),
+                ("Informática", "Segurança da Informação", "Conceitos de segurança", None),
+                ("Informática", "Segurança da Informação", "Backup e recuperação", None),
+                ("Informática", "Internet", "Navegadores e ferramentas de busca", None),
+                ("Informática", "Internet", "E-mail e comunicação", None),
+                ("Informática", "Manutenção", "Manutenção preventiva e corretiva", None),
+                
+                # Português (15% - 8 tópicos)
+                ("Português", "Interpretação de Texto", "Compreensão e interpretação", None),
+                ("Português", "Gramática", "Concordância verbal e nominal", None),
+                ("Português", "Gramática", "Regência verbal e nominal", None),
+                ("Português", "Gramática", "Crase", None),
+                ("Português", "Ortografia", "Acentuação gráfica", None),
+                ("Português", "Pontuação", "Uso correto de vírgula, ponto, etc", None),
+                
+                # Matemática (10% - 6 tópicos)
+                ("Matemática", "Aritmética", "Operações básicas", None),
+                ("Matemática", "Porcentagem", "Cálculos percentuais", None),
+                ("Matemática", "Regra de Três", "Simples e composta", None),
+                ("Matemática", "Frações", "Operações com frações", None),
+                
+                # Raciocínio Lógico (7% - 4 tópicos)
+                ("Raciocínio Lógico", "Sequências", "Lógicas e numéricas", None),
+                ("Raciocínio Lógico", "Proposições", "Lógica proposicional", None),
+                
+                # Legislação (11% - 6 tópicos)
+                ("Legislação", "Estatuto dos Servidores de Rondônia", "Direitos e deveres", None),
+                ("Legislação", "Ética no Serviço Público", "Princípios éticos", None),
+                ("Legislação", "Lei de Licitações", "Lei 14.133/2021", None),
+                
+                # Conhecimentos Gerais (7% - 3 tópicos)
+                ("Conhecimentos Gerais", "Rondônia", "Geografia e economia", None),
+                ("Conhecimentos Gerais", "Porto Velho", "História e atualidades", None),
+                ("Conhecimentos Gerais", "Atualidades", "Brasil e região Norte", None),
+            ]
+            
+            for disciplina, topico, subtopico, ref in topicos_data:
+                topic = Topic(
+                    disciplina=disciplina,
+                    topico=topico,
+                    subtopico=subtopico,
+                    reference=ref
+                )
+                db.add(topic)
+            
+            db.commit()
+            results["topics"] = len(topicos_data)
+        else:
+            results["topics"] = topics_count
+        
+        # Criar usuário de teste se não existir
+        existing_user = db.query(User).filter(User.username == "teste").first()
+        if not existing_user:
+            user = User(
+                username="teste",
+                email="teste@portovelho.com",
+                hashed_password=pwd_context.hash("teste123"),
+                full_name="Usuário Teste"
+            )
+            db.add(user)
+            db.commit()
+            results["user"] = "created"
+        
+        return {
+            "status": "success",
+            "message": "Sistema inicializado com sucesso!",
+            "details": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro ao inicializar sistema: {str(e)}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
 @app.get("/api/seed-simple")
 async def seed_simple(db: Session = Depends(get_db)):
     """
