@@ -35,8 +35,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # Desenvolvimento local
         "http://localhost:5173",  # Vite dev server
-        "https://simulados-web-porto-velho.onrender.com",  # Produção Render
-        "https://*.onrender.com",  # Qualquer subdomínio do Render
+        "https://simulados-ibgp-1.onrender.com",  # Frontend Render
+        "https://simulados-web-porto-velho.onrender.com",  # Alternativo
     ],
     allow_credentials=True,
     allow_methods=["*"],
