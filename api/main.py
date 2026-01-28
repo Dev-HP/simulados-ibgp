@@ -29,15 +29,10 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS - Configurado para desenvolvimento e produção (Render)
+# CORS - Permitir todas as origens temporariamente para debug
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Desenvolvimento local
-        "http://localhost:5173",  # Vite dev server
-        "https://simulados-ibgp-1.onrender.com",  # Frontend Render
-        "https://simulados-web-porto-velho.onrender.com",  # Alternativo
-    ],
+    allow_origins=["*"],  # Permitir todas as origens
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
