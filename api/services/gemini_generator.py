@@ -27,7 +27,8 @@ class GeminiQuestionGenerator:
             raise ValueError("GEMINI_API_KEY não configurada")
         
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        # Usar gemini-2.5-flash (modelo gratuito)
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
     
     def generate_questions_with_ai(
         self,
@@ -80,51 +81,163 @@ class GeminiQuestionGenerator:
         reference_questions: List[Dict],
         difficulty: Optional[DifficultyLevel]
     ) -> str:
-        """Constrói prompt para o Gemini"""
+        """Constrói prompt otimizado para o Gemini com contexto do concurso"""
         
-        prompt = f"""Você é um especialista em criar questões de concurso público para o cargo de Técnico em Informática.
+        # Contexto específico por disciplina
+        contexto_disciplina = {
+            "Informática": """
+CONTEXTO: Concurso para Técnico em Informática da Câmara Municipal de Porto Velho/RO.
+FOCO: Conhecimentos práticos e aplicados ao dia a dia de um técnico em órgão público.
+ESTILO: Questões objetivas, diretas, sem pegadinhas excessivas.
+EXEMPLOS DE TEMAS: Hardware (manutenção, componentes), Redes (TCP/IP, cabeamento), 
+Sistemas Operacionais (Windows 10/11, Linux), Segurança (backup, antivírus), 
+Office (Word, Excel, PowerPoint), Internet e E-mail.
+""",
+            "Português": """
+CONTEXTO: Língua Portuguesa para concurso público de nível médio/técnico.
+FOCO: Interpretação de texto, gramática aplicada, redação oficial.
+ESTILO: Textos curtos e objetivos, questões práticas sobre uso correto da língua.
+EXEMPLOS: Concordância verbal/nominal, regência, crase, pontuação, ortografia.
+""",
+            "Matemática": """
+CONTEXTO: Matemática básica para concurso de nível médio/técnico.
+FOCO: Problemas práticos do cotidiano, cálculos aplicados.
+ESTILO: Questões diretas com situações reais.
+EXEMPLOS: Porcentagem, regra de três, frações, equações simples, geometria básica.
+""",
+            "Raciocínio Lógico": """
+CONTEXTO: Raciocínio lógico para concurso público.
+FOCO: Sequências, proposições, problemas lógicos, diagramas.
+ESTILO: Questões que exigem interpretação e dedução lógica.
+""",
+            "Legislação": """
+CONTEXTO: Legislação aplicada ao serviço público, com foco em Rondônia e Porto Velho.
+FOCO: Constituição Federal, Lei 8.112/90, Estatuto dos Servidores de RO, 
+Ética no Serviço Público, Lei de Licitações (14.133/2021), Lei de Acesso à Informação.
+ESTILO: Questões sobre direitos, deveres, procedimentos administrativos.
+IMPORTANTE: Quando aplicável, mencionar especificidades de Rondônia.
+""",
+            "Conhecimentos Gerais": """
+CONTEXTO: Conhecimentos gerais com foco em Rondônia e Porto Velho.
+FOCO: Geografia de RO (rios, municípios, economia), História de Porto Velho 
+(fundação, desenvolvimento), Atualidades do Brasil e região Norte.
+ESTILO: Questões sobre fatos relevantes, dados geográficos, história local.
+IMPORTANTE: Priorizar informações sobre Rondônia e Porto Velho.
+"""
+        }
+        
+        contexto = contexto_disciplina.get(topic.disciplina, "")
+        
+        nivel_dificuldade = {
+            DifficultyLevel.FACIL: "FÁCIL - Conceitos básicos, diretos, sem pegadinhas",
+            DifficultyLevel.MEDIO: "MÉDIO - Requer conhecimento intermediário e interpretação",
+            DifficultyLevel.DIFICIL: "DIFÍCIL - Conhecimento avançado, análise crítica"
+        }
+        
+        nivel = nivel_dificuldade.get(difficulty, "VARIADO - Mix de fácil, médio e difícil")
+        
+        prompt = f"""Você é um especialista em elaborar questões de concurso público brasileiro, 
+especificamente para o cargo de TÉCNICO EM INFORMÁTICA da CÂMARA MUNICIPAL DE PORTO VELHO/RO.
 
-TAREFA: Gerar {quantity} questões de múltipla escolha sobre o tema "{topic.topico}" da disciplina "{topic.disciplina}".
+{contexto}
 
-CARACTERÍSTICAS DAS QUESTÕES:
-- Estilo: Concurso público (IBGP, CESPE, FCC)
-- Nível: {"Fácil" if difficulty == DifficultyLevel.FACIL else "Médio" if difficulty == DifficultyLevel.MEDIO else "Difícil" if difficulty else "Variado"}
-- 4 alternativas (A, B, C, D)
-- Apenas 1 alternativa correta
-- Distratores plausíveis (alternativas erradas que parecem corretas)
-- Enunciado claro e objetivo
-- Explicação detalhada da resposta
+═══════════════════════════════════════════════════════════════════
 
+TAREFA: Gerar {quantity} questões de múltipla escolha sobre:
+📚 DISCIPLINA: {topic.disciplina}
+📖 TÓPICO: {topic.topico}
+{f'📌 SUBTÓPICO: {topic.subtopico}' if topic.subtopico else ''}
+
+NÍVEL DE DIFICULDADE: {nivel}
+
+═══════════════════════════════════════════════════════════════════
+
+REGRAS OBRIGATÓRIAS:
+
+1. ENUNCIADO:
+   ✓ Claro, objetivo e sem ambiguidades
+   ✓ Contexto realista (situação de trabalho, caso prático)
+   ✓ Tamanho: 2-4 linhas (máximo 300 caracteres)
+   ✓ Evitar "assinale a alternativa correta" (já está implícito)
+
+2. ALTERNATIVAS:
+   ✓ Exatamente 4 opções (A, B, C, D)
+   ✓ Apenas 1 alternativa TOTALMENTE correta
+   ✓ Distratores plausíveis (erros comuns, conceitos relacionados)
+   ✓ Tamanho similar entre alternativas
+   ✓ Evitar "todas as anteriores" ou "nenhuma das anteriores"
+   ✓ Não usar "a e b estão corretas" (escolha única!)
+
+3. GABARITO:
+   ✓ Apenas uma letra: A, B, C ou D
+   ✓ Distribuir gabaritos de forma equilibrada
+
+4. EXPLICAÇÃO:
+   ✓ Por que a resposta está correta (2-3 linhas)
+   ✓ Por que as outras estão erradas (1 linha cada)
+   ✓ Referência técnica quando aplicável
+
+5. ESTILO:
+   ✓ Linguagem formal mas acessível
+   ✓ Termos técnicos corretos
+   ✓ Sem pegadinhas excessivas
+   ✓ Foco no conhecimento prático
+
+═══════════════════════════════════════════════════════════════════
 """
         
         # Adicionar exemplos de questões reais
-        if reference_questions:
-            prompt += "\nEXEMPLOS DE QUESTÕES REAIS (use como referência de estilo):\n\n"
-            for i, ref in enumerate(reference_questions[:3], 1):
-                prompt += f"EXEMPLO {i}:\n"
-                prompt += f"Enunciado: {ref.get('enunciado', '')}\n"
+        if reference_questions and len(reference_questions) > 0:
+            prompt += "\n📋 EXEMPLOS DE QUESTÕES REAIS (use como referência de estilo):\n\n"
+            for i, ref in enumerate(reference_questions[:2], 1):
+                prompt += f"═══ EXEMPLO {i} ═══\n"
+                prompt += f"📝 {ref.get('enunciado', '')}\n\n"
                 prompt += f"A) {ref.get('alternativa_a', '')}\n"
                 prompt += f"B) {ref.get('alternativa_b', '')}\n"
                 prompt += f"C) {ref.get('alternativa_c', '')}\n"
-                prompt += f"D) {ref.get('alternativa_d', '')}\n"
-                prompt += f"Gabarito: {ref.get('gabarito', '')}\n"
-                prompt += f"Explicação: {ref.get('explicacao_detalhada', '')}\n\n"
+                prompt += f"D) {ref.get('alternativa_d', '')}\n\n"
+                prompt += f"✅ GABARITO: {ref.get('gabarito', '')}\n"
+                prompt += f"💡 {ref.get('explicacao_detalhada', '')}\n\n"
+        
+        # Dicas específicas por tópico
+        dicas_topico = {
+            "Hardware": "Foque em componentes reais (CPU, RAM, HD, SSD), manutenção preventiva, identificação de problemas.",
+            "Redes": "Aborde protocolos (TCP/IP, HTTP, FTP), endereçamento IP, equipamentos (switch, roteador), cabeamento.",
+            "Windows": "Versões 10/11, gerenciamento de arquivos, configurações, ferramentas administrativas.",
+            "Linux": "Comandos básicos (ls, cd, chmod, chown), permissões, estrutura de diretórios.",
+            "Segurança da Informação": "Backup, antivírus, firewall, políticas de senha, criptografia básica.",
+            "Microsoft Office": "Word (formatação, tabelas), Excel (fórmulas, funções), PowerPoint (apresentações).",
+            "Português": "Interpretação de texto, concordância, regência, crase, pontuação.",
+            "Matemática": "Problemas práticos, porcentagem, regra de três, frações.",
+            "Legislação": "Quando for sobre Rondônia, mencione especificidades locais.",
+            "Rondônia": "Capital Porto Velho, rios (Madeira, Guaporé), economia (agropecuária, mineração).",
+            "Porto Velho": "Fundação (1914), Estrada de Ferro Madeira-Mamoré, Rio Madeira, usinas hidrelétricas."
+        }
+        
+        dica = next((v for k, v in dicas_topico.items() if k.lower() in topic.topico.lower()), "")
+        if dica:
+            prompt += f"\n💡 DICA PARA ESTE TÓPICO: {dica}\n\n"
         
         prompt += """
-FORMATO DE SAÍDA (para cada questão):
+═══════════════════════════════════════════════════════════════════
+
+📤 FORMATO DE SAÍDA (OBRIGATÓRIO - copie exatamente):
+
 ---QUESTAO---
-ENUNCIADO: [texto do enunciado]
+ENUNCIADO: [texto do enunciado sem "assinale a alternativa correta"]
 A) [alternativa A]
 B) [alternativa B]
 C) [alternativa C]
 D) [alternativa D]
-GABARITO: [A, B, C ou D]
-EXPLICACAO: [explicação detalhada da resposta correta]
+GABARITO: [apenas a letra: A, B, C ou D]
+EXPLICACAO: [explicação detalhada: por que a correta está certa e as outras erradas]
 DIFICULDADE: [FACIL, MEDIO ou DIFICIL]
-TEMPO_ESTIMADO: [tempo em minutos: 1-6]
+TEMPO_ESTIMADO: [número de 1 a 6 minutos]
 ---FIM---
 
-Gere as questões agora:
+═══════════════════════════════════════════════════════════════════
+
+🚀 GERE AS {quantity} QUESTÕES AGORA (uma por vez, seguindo o formato acima):
 """
         
         return prompt
@@ -228,6 +341,115 @@ Gere as questões agora:
             logger.error(f"Error saving question: {str(e)}")
             self.db.rollback()
             return None
+    
+    def generate_contextual_question(
+        self,
+        topic: Topic,
+        context_type: str = "trabalho"
+    ) -> Optional[Question]:
+        """
+        Gera questão com contexto específico (trabalho na Câmara, situação real de Porto Velho, etc.)
+        
+        Args:
+            topic: Tópico da questão
+            context_type: Tipo de contexto ("trabalho", "porto_velho", "rondonia", "pratico")
+        """
+        
+        contextos = {
+            "trabalho": f"""
+Crie uma questão sobre {topic.topico} ({topic.disciplina}) ambientada em uma situação 
+REAL de trabalho na Câmara Municipal de Porto Velho.
+
+EXEMPLO DE CONTEXTO:
+"João, técnico em informática da Câmara Municipal de Porto Velho, precisa..."
+"Durante a manutenção dos computadores do setor administrativo..."
+"O servidor responsável pela rede da Câmara identificou..."
+
+A questão deve ser PRÁTICA e relacionada ao dia a dia do cargo.
+""",
+            "porto_velho": f"""
+Crie uma questão sobre {topic.topico} ({topic.disciplina}) que mencione ou se relacione 
+com PORTO VELHO, capital de Rondônia.
+
+ELEMENTOS PARA INCLUIR (quando aplicável):
+- Câmara Municipal de Porto Velho
+- Rio Madeira
+- Estrada de Ferro Madeira-Mamoré
+- Usinas hidrelétricas (Santo Antônio, Jirau)
+- População aproximada: 500 mil habitantes
+- Fundação: 1914
+
+A questão deve ser técnica mas com contexto local.
+""",
+            "rondonia": f"""
+Crie uma questão sobre {topic.topico} ({topic.disciplina}) relacionada ao estado de RONDÔNIA.
+
+ELEMENTOS PARA INCLUIR (quando aplicável):
+- Órgãos públicos de Rondônia
+- Legislação estadual
+- Características da região Norte
+- Contexto amazônico
+
+A questão deve ter relevância para o concurso público estadual/municipal.
+""",
+            "pratico": f"""
+Crie uma questão EXTREMAMENTE PRÁTICA sobre {topic.topico} ({topic.disciplina}).
+
+FOCO: Situação real que um técnico em informática enfrenta no dia a dia.
+EXEMPLOS: Resolver problema de hardware, configurar rede, instalar software, 
+fazer backup, dar suporte a usuários, etc.
+
+A questão deve testar conhecimento aplicado, não apenas teoria.
+"""
+        }
+        
+        contexto_escolhido = contextos.get(context_type, contextos["pratico"])
+        
+        prompt = f"""Você é especialista em questões de concurso para Técnico em Informática.
+
+{contexto_escolhido}
+
+REGRAS:
+1. Enunciado com contexto realista (2-4 linhas)
+2. 4 alternativas (A, B, C, D) - apenas 1 correta
+3. Distratores plausíveis
+4. Explicação detalhada
+
+FORMATO DE SAÍDA:
+---QUESTAO---
+ENUNCIADO: [texto com contexto]
+A) [alternativa A]
+B) [alternativa B]
+C) [alternativa C]
+D) [alternativa D]
+GABARITO: [A, B, C ou D]
+EXPLICACAO: [explicação detalhada]
+DIFICULDADE: [FACIL, MEDIO ou DIFICIL]
+TEMPO_ESTIMADO: [1-6 minutos]
+---FIM---
+
+Gere a questão agora:
+"""
+        
+        try:
+            # Verificar rate limit
+            can_make, error_msg = gemini_rate_limiter.can_make_request()
+            if not can_make:
+                logger.error(f"Rate limit exceeded: {error_msg}")
+                return None
+            
+            response = self.model.generate_content(prompt)
+            gemini_rate_limiter.record_request()
+            
+            questions_data = self._parse_gemini_response(response.text, topic)
+            
+            if questions_data:
+                return self._validate_and_save(questions_data[0])
+                
+        except Exception as e:
+            logger.error(f"Error generating contextual question: {str(e)}")
+        
+        return None
     
     def improve_existing_question(self, question: Question) -> Optional[Question]:
         """Melhora uma questão existente usando Gemini"""

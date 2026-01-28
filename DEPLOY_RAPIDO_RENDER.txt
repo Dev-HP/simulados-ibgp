@@ -1,0 +1,208 @@
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║     🚀 DEPLOY RÁPIDO NO RENDER                                ║
+║     Sistema Porto Velho - 15 minutos                          ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+
+📋 PASSO 1: ATUALIZAR GITHUB (2 min)
+═══════════════════════════════════════════════════════════════
+
+Execute:
+    .\deploy_render.bat
+
+OU manualmente:
+    git add .
+    git commit -m "Deploy Render"
+    git push origin main
+
+✅ Código atualizado!
+
+
+🌐 PASSO 2: CRIAR CONTA NO RENDER (1 min)
+═══════════════════════════════════════════════════════════════
+
+1. Acesse: https://render.com
+2. Clique em "Get Started"
+3. Login com GitHub
+4. Autorize acesso
+
+✅ Conta criada!
+
+
+🔧 PASSO 3: DEPLOY DA API (5 min)
+═══════════════════════════════════════════════════════════════
+
+1. Dashboard → "New +" → "Web Service"
+
+2. Conectar repositório:
+   - Selecione: Dev-HP/simulados-ibgp
+   - Clique "Connect"
+
+3. Configurar:
+   Name: simulados-api-porto-velho
+   Region: Oregon (US West)
+   Branch: main
+   Root Directory: api
+   Environment: Docker
+   Instance Type: Free
+
+4. Adicionar variáveis (Advanced):
+   
+   GEMINI_API_KEY = AIzaSyBYpSeQqF5k3hyAuLPZw5V-suXwLnGj7XM
+   DATABASE_URL = sqlite:///./simulados.db
+   SECRET_KEY = render-secret-2026-porto-velho
+   ENVIRONMENT = production
+
+5. Clique "Create Web Service"
+
+6. Aguarde build (~3-5 min)
+
+✅ API online!
+URL: https://simulados-api-porto-velho.onrender.com
+
+
+🎨 PASSO 4: DEPLOY DO FRONTEND (5 min)
+═══════════════════════════════════════════════════════════════
+
+1. Dashboard → "New +" → "Static Site"
+
+2. Conectar repositório:
+   - Selecione: Dev-HP/simulados-ibgp
+   - Clique "Connect"
+
+3. Configurar:
+   Name: simulados-web-porto-velho
+   Branch: main
+   Root Directory: web
+   Build Command: npm install && npm run build
+   Publish Directory: web/dist
+
+4. Adicionar variável (Advanced):
+   
+   VITE_API_URL = https://simulados-api-porto-velho.onrender.com
+   
+   ⚠️ IMPORTANTE: Use a URL real da sua API (do Passo 3)
+
+5. Clique "Create Static Site"
+
+6. Aguarde build (~3-5 min)
+
+✅ Frontend online!
+URL: https://simulados-web-porto-velho.onrender.com
+
+
+📊 PASSO 5: POPULAR BANCO (2 min)
+═══════════════════════════════════════════════════════════════
+
+1. Dashboard → simulados-api-porto-velho → "Shell"
+
+2. Executar:
+   python criar_topicos.py
+
+3. Criar usuário:
+   python -c "
+   from database import SessionLocal
+   from models import User
+   from passlib.context import CryptContext
+   
+   db = SessionLocal()
+   pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+   
+   user = User(
+       username='teste',
+       email='teste@portovelho.com',
+       hashed_password=pwd_context.hash('teste123'),
+       full_name='Usuário Teste'
+   )
+   
+   db.add(user)
+   db.commit()
+   print('OK!')
+   "
+
+✅ Banco populado!
+
+
+🎯 PASSO 6: TESTAR (1 min)
+═══════════════════════════════════════════════════════════════
+
+1. Abrir: https://simulados-web-porto-velho.onrender.com
+
+2. Login:
+   Usuário: teste
+   Senha: teste123
+
+3. Testar:
+   ✓ Dashboard
+   ✓ Ver tópicos (54)
+   ✓ Gerar questão
+   ✓ Fazer prova
+
+✅ Sistema funcionando!
+
+
+🎉 PRONTO! SISTEMA ONLINE
+═══════════════════════════════════════════════════════════════
+
+🌐 Suas URLs:
+
+Frontend:
+https://simulados-web-porto-velho.onrender.com
+
+API:
+https://simulados-api-porto-velho.onrender.com
+
+Documentação:
+https://simulados-api-porto-velho.onrender.com/docs
+
+
+📱 COMPARTILHAR
+═══════════════════════════════════════════════════════════════
+
+Adicione ao README.md:
+
+## 🌐 Demo Online
+
+Acesse: https://simulados-web-porto-velho.onrender.com
+
+Login: teste / teste123
+
+Foco: Técnico em Informática - Câmara de Porto Velho/RO
+
+
+⚠️ IMPORTANTE
+═══════════════════════════════════════════════════════════════
+
+1. API dorme após 15 min inativo
+   → Primeiro acesso demora ~30s
+
+2. Dados resetam a cada deploy
+   → Fazer backup regular
+
+3. Manter API ativa:
+   → Usar UptimeRobot (grátis)
+   → https://uptimerobot.com
+
+
+💡 DICAS
+═══════════════════════════════════════════════════════════════
+
+✓ Gere questões pela interface web
+✓ 10-15 por vez, aguarde 1 min
+✓ Foque em Informática primeiro
+✓ Faça backup das questões
+
+
+📚 DOCUMENTAÇÃO COMPLETA
+═══════════════════════════════════════════════════════════════
+
+Leia: DEPLOY_RENDER.md
+
+
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║     ✅ Sistema online em 15 minutos! 🚀                       ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝

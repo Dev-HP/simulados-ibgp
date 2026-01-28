@@ -4,11 +4,14 @@ import axios from 'axios'
 import Home from './pages/Home'
 import Simulados from './pages/Simulados'
 import SimuladoExec from './pages/SimuladoExec'
+import ProvaCompleta from './pages/ProvaCompleta'
+import ExecutarProva from './pages/ExecutarProva'
 import Results from './pages/Results'
 import Analytics from './pages/Analytics'
 import Upload from './pages/Upload'
 import AIGenerator from './pages/AIGenerator'
 import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -78,8 +81,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/ai-generator" element={<AIGenerator />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/questions" element={<div style={{padding: '2rem'}}>Questões (em desenvolvimento)</div>} />
           <Route path="/simulados" element={<Simulados />} />
           <Route path="/simulados/:id" element={<SimuladoExec />} />
+          <Route path="/prova-completa" element={<ProvaCompleta />} />
+          <Route path="/executar-prova" element={<ExecutarProva />} />
           <Route path="/results" element={<Results />} />
           <Route path="/analytics" element={<Analytics />} />
         </Routes>

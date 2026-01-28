@@ -1,0 +1,34 @@
+services:
+  # API Backend
+  - type: web
+    name: simulados-api-porto-velho
+    env: docker
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    plan: free
+    region: oregon
+    branch: main
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        value: sqlite:///./simulados.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
+    healthCheckPath: /api/health
+
+  # Frontend Static Site
+  - type: web
+    name: simulados-web-porto-velho
+    env: static
+    buildCommand: cd web && npm install && npm run build
+    staticPublishPath: ./web/dist
+    plan: free
+    region: oregon
+    branch: main
+    envVars:
+      - key: VITE_API_URL
+        value: https://simulados-api-porto-velho.onrender.com
+    pullRequestPreviewsEnabled: true

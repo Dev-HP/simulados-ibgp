@@ -1,10 +1,54 @@
 # 📑 Índice Completo - Sistema de Simulados IBGP
 
-## 🎯 Comece Aqui
+## 🚨 SITUAÇÃO ATUAL (28/01/2026)
+
+**Status:** ✅ Sistema funcionando | ⚠️ Rate limit atingido | 100 questões prontas
+
+### 🔥 LEIA PRIMEIRO (NOVO):
+1. **[LEIA_PRIMEIRO.md](LEIA_PRIMEIRO.md)** ⭐⭐⭐ - Resumo da situação atual
+2. **[SITUACAO_ATUAL.md](SITUACAO_ATUAL.md)** ⭐⭐ - Status completo do sistema
+3. **[SOLUCAO_GERACAO.md](SOLUCAO_GERACAO.md)** ⭐⭐ - Como gerar questões (3 opções)
+4. **[GERAR_PELA_WEB.md](GERAR_PELA_WEB.md)** ⭐ - Passo a passo interface web
+5. **[COMANDOS_RAPIDOS.md](COMANDOS_RAPIDOS.md)** - Referência rápida
+
+---
+
+## 🎯 Comece Aqui (Documentação Original)
 
 - **[START_HERE.md](START_HERE.md)** ⭐ - Ponto de partida recomendado
 - **[RESUMO_FINAL.txt](RESUMO_FINAL.txt)** - Resumo executivo em texto
 - **[README.md](README.md)** - Documentação principal do projeto
+
+---
+
+## 🎓 Concurso Porto Velho (NOVO)
+
+### Documentação Específica
+- **[GUIA_COMPLETO_CONCURSO.md](GUIA_COMPLETO_CONCURSO.md)** - Guia completo do concurso
+- **[COMO_USAR_PROVAS.md](COMO_USAR_PROVAS.md)** - Como fazer provas completas
+- **[MELHORIAS_IA.md](MELHORIAS_IA.md)** - Melhorias na IA
+- **[SISTEMA_PRONTO.md](SISTEMA_PRONTO.md)** - Sistema pronto para uso
+- **[RESUMO_IMPLEMENTACAO.md](RESUMO_IMPLEMENTACAO.md)** - Resumo da implementação
+- **[AVISO_GERACAO_MASSIVA.md](AVISO_GERACAO_MASSIVA.md)** - Aviso sobre rate limits
+
+### Scripts
+- **[criar_topicos.py](criar_topicos.py)** - Criar tópicos focados em Porto Velho
+- **[gerar_questoes_concurso.py](gerar_questoes_concurso.py)** - Geração massiva (rate limit!)
+- **[gerar_questoes_lento.py](gerar_questoes_lento.py)** ⭐ - Geração lenta (segura)
+- **[iniciar_sistema.bat](iniciar_sistema.bat)** - Iniciar API + Frontend
+- **[preparacao_concurso.bat](preparacao_concurso.bat)** - Preparação completa
+- **[testar_sistema_completo.bat](testar_sistema_completo.bat)** - Testar tudo
+
+### Arquivos Backend
+- **[api/routers/prova_completa.py](api/routers/prova_completa.py)** - Sistema de provas completas
+- **[api/services/gemini_generator.py](api/services/gemini_generator.py)** - Gerador com Gemini
+- **[api/services/rate_limiter.py](api/services/rate_limiter.py)** - Rate limiter
+
+### Arquivos Frontend
+- **[web/src/pages/ProvaCompleta.jsx](web/src/pages/ProvaCompleta.jsx)** - Seleção de prova
+- **[web/src/pages/ExecutarProva.jsx](web/src/pages/ExecutarProva.jsx)** - Execução de prova
+- **[web/src/pages/Dashboard.jsx](web/src/pages/Dashboard.jsx)** - Dashboard
+- **[web/src/pages/AIGenerator.jsx](web/src/pages/AIGenerator.jsx)** - Gerador IA
 
 ---
 

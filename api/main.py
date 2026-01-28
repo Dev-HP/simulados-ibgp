@@ -3,9 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import logging
+import os
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente do .env
+load_dotenv()
 
 from database import engine, get_db, Base
-from routers import syllabus, questions, simulados, users, analytics, export
+from routers import syllabus, questions, simulados, users, analytics, export, prova_completa
 from models import User
 from auth import get_current_user
 
@@ -24,10 +29,15 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS
+# CORS - Configurado para desenvolvimento e produção (Render)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",  # Desenvolvimento local
+        "http://localhost:5173",  # Vite dev server
+        "https://simulados-web-porto-velho.onrender.com",  # Produção Render
+        "https://*.onrender.com",  # Qualquer subdomínio do Render
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,6 +50,7 @@ app.include_router(simulados.router, prefix="/api", tags=["Simulados"])
 app.include_router(users.router, prefix="/api", tags=["Users"])
 app.include_router(analytics.router, prefix="/api", tags=["Analytics"])
 app.include_router(export.router, prefix="/api", tags=["Export"])
+app.include_router(prova_completa.router, prefix="/api", tags=["Prova Completa"])
 
 @app.get("/")
 async def root():
