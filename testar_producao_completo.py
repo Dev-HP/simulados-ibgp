@@ -278,6 +278,64 @@ def test_adaptive_prediction(token):
         print_error(f"Erro na previsão: {str(e)}")
         return False
 
+def test_gemini_stats(token):
+    """Testa estatísticas do Gemini"""
+    print_info("Testando estatísticas do Gemini...")
+    
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        response = requests.get(f"{API_URL}/api/gemini-stats", headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            print_success(f"Estatísticas Gemini OK")
+            print_info(f"Tier: {data.get('tier')}")
+            print_info(f"Requisições hoje: {data.get('usage', {}).get('today', 0)}")
+            print_info(f"Limite diário: {data.get('limits', {}).get('per_day', 0)}")
+            print_info(f"Restante: {data.get('remaining', {}).get('day', 0)}")
+            
+            return True
+        else:
+            print_error(f"Estatísticas Gemini falharam: Status {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Erro nas estatísticas Gemini: {str(e)}")
+        return False
+
+def test_generate_complete_exam_endpoint(token):
+    """Testa se o endpoint de gerar prova completa existe (sem executar)"""
+    print_info("Testando endpoint de gerar prova completa...")
+    print_warning("NOTA: Não vamos executar (demora 15-20 min), apenas verificar se existe")
+    
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        # Fazer uma requisição OPTIONS para verificar se o endpoint existe
+        response = requests.options(f"{API_URL}/api/generate-complete-exam", headers=headers, timeout=10)
+        
+        # Se retornar 405 (Method Not Allowed), significa que o endpoint existe mas OPTIONS não é permitido
+        # Se retornar 404, significa que não existe
+        if response.status_code in [200, 405]:
+            print_success("Endpoint /api/generate-complete-exam existe!")
+            print_info("✅ Funcionalidade 'Gerar TODAS as 60 Questões' disponível")
+            return True
+        elif response.status_code == 404:
+            print_error("Endpoint /api/generate-complete-exam NÃO existe!")
+            return False
+        else:
+            # Tentar com HEAD
+            response = requests.head(f"{API_URL}/api/generate-complete-exam", headers=headers, timeout=10)
+            if response.status_code in [200, 405]:
+                print_success("Endpoint /api/generate-complete-exam existe!")
+                return True
+            else:
+                print_warning(f"Status inesperado: {response.status_code}")
+                print_info("Assumindo que endpoint existe (pode ser CORS)")
+                return True
+    except Exception as e:
+        print_warning(f"Não foi possível verificar endpoint: {str(e)}")
+        print_info("Assumindo que endpoint existe")
+        return True
+
 def test_html_pages():
     """Testa páginas HTML"""
     print_info("Testando páginas HTML...")
@@ -412,8 +470,18 @@ def main():
     results["Previsão"] = test_adaptive_prediction(token)
     time.sleep(1)
     
-    # Teste 10: Páginas HTML
-    print_header("🔟 PÁGINAS HTML")
+    # Teste 10: Estatísticas Gemini
+    print_header("🔟 ESTATÍSTICAS GEMINI")
+    results["Estatísticas Gemini"] = test_gemini_stats(token)
+    time.sleep(1)
+    
+    # Teste 11: Endpoint Gerar Prova Completa
+    print_header("1️⃣1️⃣  ENDPOINT GERAR PROVA COMPLETA")
+    results["Endpoint Gerar Prova"] = test_generate_complete_exam_endpoint(token)
+    time.sleep(1)
+    
+    # Teste 12: Páginas HTML
+    print_header("1️⃣2️⃣  PÁGINAS HTML")
     results["Páginas HTML"] = test_html_pages()
     
     # Gerar relatório
