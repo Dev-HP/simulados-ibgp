@@ -10,18 +10,11 @@ from dotenv import load_dotenv
 # Carregar variáveis de ambiente do .env
 load_dotenv()
 
-from database import engine, get_db, Base
-from routers import syllabus, questions, simulados, users, analytics, export, prova_completa
-from models import User
-from auth import get_current_user
-
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Criar tabelas
-Base.metadata.create_all(bind=engine)
-
+# Criar app PRIMEIRO
 app = FastAPI(
     title="Sistema de Simulados IBGP",
     description="API para simulados adaptativos - Técnico em Informática",
@@ -29,6 +22,31 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Health checks PRIMEIRO - antes de qualquer outra coisa
+@app.get("/health")
+def health_check():
+    """Health check simples - não depende de nada"""
+    return {"status": "healthy"}
+
+@app.get("/api/health")
+def api_health_check():
+    """Health check da API - não depende de nada"""
+    return {"status": "healthy"}
+
+# Agora importar database e models
+try:
+    from database import engine, get_db, Base
+    from routers import syllabus, questions, simulados, users, analytics, export, prova_completa
+    from models import User
+    from auth import get_current_user
+    
+    # Criar tabelas
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
+except Exception as e:
+    logger.error(f"Error initializing database: {str(e)}")
+    # Continuar mesmo com erro - health check ainda funciona
 
 # CORS - Permitir todas as origens temporariamente para debug
 app.add_middleware(
@@ -368,10 +386,6 @@ async def root():
         "login": "/login",
         "dashboard": "/dashboard"
     }
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
 
 @app.get("/api/initialize")
 async def initialize_system(db: Session = Depends(get_db)):
