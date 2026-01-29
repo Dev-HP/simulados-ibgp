@@ -25,16 +25,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
         run: |
           cd web
-          npm install
+          npm ci
 
       - name: Build
         env:
-          VITE_API_URL: https://simulados-api.onrender.com
-          VITE_BASE_PATH: /simulados-ibgp/
+          VITE_API_URL: https://simulados-ibgp.onrender.com
         run: |
           cd web
           npm run build

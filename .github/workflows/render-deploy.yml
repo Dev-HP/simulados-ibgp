@@ -1,0 +1,52 @@
+name: Render Deploy Notification
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  notify-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Get commit info
+        id: commit
+        run: |
+          echo "message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "author=$(git log -1 --pretty=%an)" >> $GITHUB_OUTPUT
+      
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deploy iniciado no Render"
+          echo "📝 Commit: ${{ steps.commit.outputs.message }}"
+          echo "🔖 SHA: ${{ steps.commit.outputs.sha }}"
+          echo "👤 Autor: ${{ steps.commit.outputs.author }}"
+          echo ""
+          echo "⏳ Aguarde 5-10 minutos para o deploy completar"
+          echo "🔗 API: https://simulados-ibgp.onrender.com"
+          echo "🔗 Frontend: https://simulados-ibgp-1.onrender.com"
+          echo ""
+          echo "✅ Render vai detectar automaticamente e fazer o deploy"
+      
+      - name: Wait for Render
+        run: |
+          echo "Aguardando 2 minutos antes de verificar..."
+          sleep 120
+      
+      - name: Check API health
+        continue-on-error: true
+        run: |
+          echo "Verificando health check da API..."
+          for i in {1..5}; do
+            if curl -f https://simulados-ibgp.onrender.com/api/health; then
+              echo "✅ API está respondendo!"
+              exit 0
+            fi
+            echo "Tentativa $i/5 falhou, aguardando 30s..."
+            sleep 30
+          done
+          echo "⚠️ API ainda não está respondendo, mas o deploy pode estar em progresso"

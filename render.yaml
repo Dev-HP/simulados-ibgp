@@ -12,11 +12,15 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: DATABASE_URL
-        value: sqlite:///./simulados.db
+        fromDatabase:
+          name: simulados-db
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: ENVIRONMENT
         value: production
+      - key: USE_POSTGRES
+        value: "false"
     healthCheckPath: /api/health
 
   # Frontend Static Site
