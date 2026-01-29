@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-01-29T11:11:06.004858",
+  "timestamp": "2026-01-29T11:17:40.321851",
   "api_url": "https://simulados-ibgp.onrender.com",
   "total_tests": 3,
-  "passed": 1,
-  "failed": 2,
+  "passed": 2,
+  "failed": 1,
   "results": {
-    "Health Check": "FAIL",
+    "Health Check": "PASS",
     "Inicializa\u00e7\u00e3o": "PASS",
     "Login": "FAIL"
   }
