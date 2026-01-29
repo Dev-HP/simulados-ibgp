@@ -1,5 +1,8 @@
 FROM python:3.11-slim
 
+# Criar usuário não-root
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
 WORKDIR /app
 
 # Instalar dependências do sistema
@@ -12,11 +15,15 @@ RUN apt-get update && apt-get install -y \
 # Copiar requirements
 COPY requirements.txt .
 
-# Instalar dependências Python
+# Instalar dependências Python como root (necessário para instalação)
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código
+# Copiar código e ajustar permissões
 COPY . .
+RUN chown -R appuser:appuser /app
+
+# Mudar para usuário não-root
+USER appuser
 
 # Expor porta
 EXPOSE 8000

@@ -27,7 +27,7 @@ services:
   - type: web
     name: simulados-ibgp-1
     env: static
-    buildCommand: cd web && npm install && npm run build && cp public/_redirects dist/_redirects
+    buildCommand: cd web && npm install && npm run build && cp public/_redirects dist/_redirects && echo "Build completed at $(date)"
     staticPublishPath: ./web/dist
     plan: free
     region: oregon
