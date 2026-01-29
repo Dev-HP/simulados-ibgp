@@ -27,7 +27,7 @@ def seed_database():
         user = User(
             email="teste@example.com",
             username="teste",
-            hashed_password=get_password_hash("senha123"),
+            hashed_password=get_password_hash("teste123"),
             full_name="Usuário Teste"
         )
         db.add(user)
