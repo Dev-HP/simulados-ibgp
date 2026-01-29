@@ -18,7 +18,7 @@ O GitHub detectou API keys do Google Gemini expostas em múltiplos arquivos de d
 
 ### API Key Exposta
 ```
-AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w (REMOVIDA)
+[KEY_ANTIGA_REMOVIDA]
 ```
 
 ## ✅ AÇÕES TOMADAS IMEDIATAMENTE
@@ -40,7 +40,7 @@ c85ded0 - SECURITY: Remove exposed API key from documentation
 
 1. **REVOGAR A API KEY IMEDIATAMENTE**
    - Acesse: https://console.cloud.google.com/apis/credentials
-   - Encontre a key: `AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w`
+   - Encontre a key: `[SUA_KEY_ANTIGA_AQUI]`
    - Clique em "Delete" ou "Revoke"
 
 2. **GERAR NOVA API KEY**

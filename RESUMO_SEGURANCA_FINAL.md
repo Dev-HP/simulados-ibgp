@@ -45,7 +45,7 @@
 ### 1. Revogar Key Antiga (2 minutos)
 ```
 1. Acesse: https://console.cloud.google.com/apis/credentials
-2. Encontre: AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w
+2. Encontre: [SUA_KEY_ANTIGA_AQUI]
 3. Clique: Delete/Revoke
 4. Confirme: Yes, delete
 ```
