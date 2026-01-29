@@ -265,3 +265,167 @@ async def get_gemini_stats():
             "⚠️ Limite diário próximo" if stats['remaining_day'] < 100 else None
         ]
     }
+
+@router.post("/generate-complete-exam")
+async def generate_complete_exam(db: Session = Depends(get_db)):
+    """
+    Gera TODAS as 60 questões da prova real do concurso.
+    Segue EXATAMENTE a distribuição do edital IBGP.
+    
+    Distribuição:
+    - Informática: 30 questões (50%)
+    - Português: 9 questões (15%)
+    - Matemática: 6 questões (10%)
+    - Raciocínio Lógico: 4 questões (7%)
+    - Legislação: 7 questões (11%)
+    - Conhecimentos Gerais: 4 questões (7%)
+    
+    Tempo estimado: 15-20 minutos
+    """
+    try:
+        if not os.getenv('GEMINI_API_KEY'):
+            raise HTTPException(
+                status_code=400,
+                detail="GEMINI_API_KEY não configurada. Configure no Render."
+            )
+        
+        # Distribuição exata do edital
+        DISTRIBUICAO_EDITAL = {
+            "Informática": {
+                "total": 30,
+                "topicos": {
+                    "Hardware - Componentes internos": 4,
+                    "Hardware - Periféricos": 2,
+                    "Redes - Conceitos básicos": 3,
+                    "Redes - TCP/IP": 3,
+                    "Redes - Equipamentos": 2,
+                    "Windows 10/11": 4,
+                    "Linux básico": 2,
+                    "Word": 2,
+                    "Excel": 3,
+                    "PowerPoint": 1,
+                    "Segurança da Informação": 2,
+                    "Internet e E-mail": 2
+                }
+            },
+            "Português": {
+                "total": 9,
+                "topicos": {
+                    "Interpretação de Texto": 3,
+                    "Concordância": 2,
+                    "Regência": 1,
+                    "Crase": 1,
+                    "Ortografia": 1,
+                    "Pontuação": 1
+                }
+            },
+            "Matemática": {
+                "total": 6,
+                "topicos": {
+                    "Operações básicas": 2,
+                    "Porcentagem": 2,
+                    "Regra de Três": 1,
+                    "Frações": 1
+                }
+            },
+            "Raciocínio Lógico": {
+                "total": 4,
+                "topicos": {
+                    "Sequências": 2,
+                    "Proposições": 2
+                }
+            },
+            "Legislação": {
+                "total": 7,
+                "topicos": {
+                    "Estatuto dos Servidores RO": 3,
+                    "Ética no Serviço Público": 2,
+                    "Lei de Licitações": 2
+                }
+            },
+            "Conhecimentos Gerais": {
+                "total": 4,
+                "topicos": {
+                    "Rondônia": 2,
+                    "Porto Velho": 1,
+                    "Atualidades": 1
+                }
+            }
+        }
+        
+        generator = GeminiQuestionGenerator(db)
+        total_geradas = 0
+        relatorio = {}
+        
+        # Gerar questões por disciplina e tópico
+        for disciplina, config in DISTRIBUICAO_EDITAL.items():
+            logger.info(f"Gerando questões para {disciplina}...")
+            relatorio[disciplina] = {}
+            
+            for topico, quantidade in config['topicos'].items():
+                try:
+                    # Buscar ou criar tópico
+                    topic = db.query(Topic).filter(
+                        Topic.disciplina == disciplina,
+                        Topic.topico == topico
+                    ).first()
+                    
+                    if not topic:
+                        topic = Topic(disciplina=disciplina, topico=topico)
+                        db.add(topic)
+                        db.commit()
+                        db.refresh(topic)
+                    
+                    # Buscar questões de referência
+                    reference_questions = []
+                    refs = db.query(Question).filter(
+                        Question.disciplina == disciplina
+                    ).limit(3).all()
+                    
+                    if refs:
+                        reference_questions = [
+                            {
+                                'enunciado': q.enunciado,
+                                'alternativa_a': q.alternativa_a,
+                                'alternativa_b': q.alternativa_b,
+                                'alternativa_c': q.alternativa_c,
+                                'alternativa_d': q.alternativa_d,
+                                'gabarito': q.gabarito,
+                                'explicacao_detalhada': q.explicacao_detalhada
+                            }
+                            for q in refs
+                        ]
+                    
+                    # Gerar questões
+                    questions = generator.generate_questions_with_ai(
+                        topic=topic,
+                        quantity=quantidade,
+                        reference_questions=reference_questions,
+                        difficulty="MEDIO"
+                    )
+                    
+                    geradas = len(questions)
+                    total_geradas += geradas
+                    relatorio[disciplina][topico] = geradas
+                    
+                    logger.info(f"  {topico}: {geradas}/{quantidade} questões")
+                    
+                    # Aguardar para respeitar rate limit (15 req/min)
+                    import time
+                    time.sleep(5)
+                    
+                except Exception as e:
+                    logger.error(f"Erro ao gerar {topico}: {str(e)}")
+                    relatorio[disciplina][topico] = 0
+        
+        return {
+            "message": "Prova completa gerada com sucesso!",
+            "total_generated": total_geradas,
+            "expected": 60,
+            "percentage": round((total_geradas/60)*100, 1),
+            "report": relatorio
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating complete exam: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

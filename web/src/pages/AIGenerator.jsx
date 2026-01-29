@@ -16,6 +16,10 @@ export default function AIGenerator() {
   const [useReferences, setUseReferences] = useState(true)
   const [generateLoading, setGenerateLoading] = useState(false)
   const [generateMessage, setGenerateMessage] = useState('')
+  
+  const [generateAllLoading, setGenerateAllLoading] = useState(false)
+  const [generateAllMessage, setGenerateAllMessage] = useState('')
+  const [generateAllProgress, setGenerateAllProgress] = useState(null)
 
   // Buscar tópicos disponíveis
   const { data: topics } = useQuery({
@@ -124,6 +128,45 @@ export default function AIGenerator() {
     }
   }
 
+  const handleGenerateAll = async () => {
+    if (!confirm('⚠️ ATENÇÃO!\n\nEsta operação vai gerar TODAS as 60 questões da prova real do concurso.\n\nTempo estimado: 15-20 minutos\n\nDeseja continuar?')) {
+      return
+    }
+
+    setGenerateAllLoading(true)
+    setGenerateAllMessage('🚀 Iniciando geração de todas as 60 questões...')
+    setGenerateAllProgress({
+      total: 60,
+      geradas: 0,
+      disciplina_atual: 'Informática',
+      topico_atual: 'Iniciando...'
+    })
+
+    try {
+      const response = await axios.post(`${API_URL}/api/generate-complete-exam`, null, {
+        timeout: 1200000 // 20 minutos
+      })
+      
+      setGenerateAllMessage(`✅ SUCESSO! ${response.data.total_generated} questões geradas!`)
+      setGenerateAllProgress(null)
+      
+      // Atualizar estatísticas
+      setTimeout(() => window.location.reload(), 3000)
+    } catch (error) {
+      const errorMsg = error.response?.data?.detail || error.message
+      if (errorMsg.includes('GEMINI_API_KEY')) {
+        setGenerateAllMessage('❌ Chave do Gemini não configurada. Configure no Render.')
+      } else if (error.response?.status === 429) {
+        setGenerateAllMessage('❌ Limite de requisições atingido. Aguarde alguns minutos e tente novamente.')
+      } else {
+        setGenerateAllMessage(`❌ Erro: ${errorMsg}`)
+      }
+      setGenerateAllProgress(null)
+    } finally {
+      setGenerateAllLoading(false)
+    }
+  }
+
   return (
     <div>
       <div className="card">
@@ -150,6 +193,138 @@ export default function AIGenerator() {
           </div>
         </div>
       )}
+
+      {/* GERAR TODAS AS QUESTÕES DA PROVA REAL */}
+      <div className="card" style={{ 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        border: '3px solid #ffd700'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2rem', margin: '0 0 1rem 0' }}>
+            🔥 GERAR PROVA COMPLETA DO CONCURSO
+          </h2>
+          <p style={{ fontSize: '1.2rem', margin: '0 0 1.5rem 0', opacity: 0.9 }}>
+            Gera TODAS as 60 questões da prova real seguindo o edital IBGP
+          </p>
+          
+          <div style={{ 
+            background: 'rgba(255,255,255,0.2)', 
+            padding: '1.5rem', 
+            borderRadius: '8px',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>30</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Informática (50%)</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>9</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Português (15%)</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>6</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Matemática (10%)</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>7</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Legislação (11%)</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>4</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Raciocínio (7%)</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>4</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Conhecimentos (7%)</div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleGenerateAll}
+            disabled={generateAllLoading}
+            style={{
+              padding: '1.5rem 3rem',
+              fontSize: '1.3rem',
+              fontWeight: 'bold',
+              background: generateAllLoading ? '#666' : '#ffd700',
+              color: '#000',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: generateAllLoading ? 'not-allowed' : 'pointer',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+              transition: 'all 0.3s'
+            }}
+            onMouseOver={(e) => {
+              if (!generateAllLoading) {
+                e.target.style.transform = 'scale(1.05)'
+                e.target.style.boxShadow = '0 6px 12px rgba(0,0,0,0.4)'
+              }
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = 'scale(1)'
+              e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)'
+            }}
+          >
+            {generateAllLoading ? '⏳ GERANDO... (15-20 min)' : '🚀 GERAR TODAS AS 60 QUESTÕES'}
+          </button>
+
+          {generateAllProgress && (
+            <div style={{ 
+              marginTop: '1.5rem', 
+              padding: '1rem', 
+              background: 'rgba(255,255,255,0.2)',
+              borderRadius: '8px'
+            }}>
+              <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                📊 Progresso: {generateAllProgress.geradas}/{generateAllProgress.total} questões
+              </div>
+              <div style={{ 
+                height: '20px', 
+                background: 'rgba(255,255,255,0.3)', 
+                borderRadius: '10px',
+                overflow: 'hidden',
+                marginBottom: '0.5rem'
+              }}>
+                <div style={{ 
+                  height: '100%', 
+                  width: `${(generateAllProgress.geradas/generateAllProgress.total)*100}%`,
+                  background: '#ffd700',
+                  transition: 'width 0.5s'
+                }} />
+              </div>
+              <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+                🎯 {generateAllProgress.disciplina_atual} - {generateAllProgress.topico_atual}
+              </div>
+            </div>
+          )}
+
+          {generateAllMessage && (
+            <div style={{
+              marginTop: '1.5rem',
+              padding: '1rem',
+              background: generateAllMessage.includes('✅') ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)',
+              borderRadius: '8px',
+              fontSize: '1.1rem'
+            }}>
+              {generateAllMessage}
+            </div>
+          )}
+
+          <div style={{ 
+            marginTop: '1.5rem', 
+            fontSize: '0.9rem', 
+            opacity: 0.8,
+            lineHeight: '1.6'
+          }}>
+            ⏱️ Tempo estimado: 15-20 minutos<br/>
+            🤖 Usa Gemini AI com rate limiting inteligente<br/>
+            📝 Gera questões seguindo EXATAMENTE o edital
+          </div>
+        </div>
+      </div>
 
       {/* Status do Gemini API */}
       {geminiStats && (
