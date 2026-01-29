@@ -12,6 +12,7 @@ import Upload from './pages/Upload'
 import AIGenerator from './pages/AIGenerator'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import AdaptiveLearning from './pages/AdaptiveLearning'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -82,6 +83,7 @@ function App() {
           <Route path="/upload" element={<Upload />} />
           <Route path="/ai-generator" element={<AIGenerator />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/adaptive-learning" element={<AdaptiveLearning />} />
           <Route path="/questions" element={<div style={{padding: '2rem'}}>Questões (em desenvolvimento)</div>} />
           <Route path="/simulados" element={<Simulados />} />
           <Route path="/simulados/:id" element={<SimuladoExec />} />

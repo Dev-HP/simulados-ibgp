@@ -25,6 +25,13 @@ export default function Dashboard() {
       highlight: true
     },
     {
+      title: '🧠 Aprendizado Adaptativo',
+      description: 'Análise personalizada e plano de estudos inteligente',
+      link: '/adaptive-learning',
+      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      highlight: true
+    },
+    {
       title: '🤖 Gerar com IA',
       description: 'Crie questões personalizadas com Inteligência Artificial',
       link: '/ai-generator',
