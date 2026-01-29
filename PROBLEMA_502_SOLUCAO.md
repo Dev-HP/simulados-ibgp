@@ -104,7 +104,7 @@ Se retornar `{"status": "healthy"}`, API está OK!
 
 1. Serviço → Settings → Environment
 2. Verificar se existe:
-   - `GEMINI_API_KEY` = AIzaSyAJdlxhkUPf2ykYpd_7teyP4ge9zukGe6s
+   - `GEMINI_API_KEY` = [SUA_API_KEY_AQUI]
    - `DATABASE_URL` = (gerado automaticamente)
    - `SECRET_KEY` = (qualquer string)
 
