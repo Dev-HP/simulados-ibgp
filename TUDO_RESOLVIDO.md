@@ -209,7 +209,7 @@ python testar_producao_completo.py
 
 ### Variáveis de Ambiente:
 ```
-GEMINI_API_KEY=AIzaSyBYpSeQqF5k3hyAuLPZw5V-suXwLnGj7XM
+GEMINI_API_KEY=[CONFIGURAR_NO_RENDER]
 SECRET_KEY=(gerado automaticamente)
 DATABASE_URL=(PostgreSQL do Render)
 USE_POSTGRES=false (usando SQLite no Render Free)

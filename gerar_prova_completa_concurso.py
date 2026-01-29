@@ -11,7 +11,7 @@ import json
 from datetime import datetime
 
 API_URL = "https://simulados-ibgp.onrender.com"
-GEMINI_API_KEY = "AIzaSyBYpSeQqF5k3hyAuLPZw5V-suXwLnGj7XM"
+# GEMINI_API_KEY deve estar no .env - NUNCA hardcode aqui!
 
 # DISTRIBUIÇÃO EXATA DO EDITAL
 # Total: 60 questões

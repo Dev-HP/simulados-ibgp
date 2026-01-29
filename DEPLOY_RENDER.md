@@ -9,7 +9,7 @@
 
 ✅ Repositório GitHub: https://github.com/Dev-HP/simulados-ibgp  
 ✅ Conta no Render: https://render.com (criar se não tiver)  
-✅ API Key do Gemini: `AIzaSyBYpSeQqF5k3hyAuLPZw5V-suXwLnGj7XM`
+✅ API Key do Gemini: Configure no Render (não exponha no código!)
 
 ---
 
@@ -57,7 +57,7 @@ git push origin main
    Adicionar estas variáveis:
    
    ```
-   GEMINI_API_KEY=AIzaSyBYpSeQqF5k3hyAuLPZw5V-suXwLnGj7XM
+   GEMINI_API_KEY=[SUA_CHAVE_AQUI]
    DATABASE_URL=sqlite:///./simulados.db
    SECRET_KEY=render-secret-key-2026-porto-velho-concurso
    ENVIRONMENT=production

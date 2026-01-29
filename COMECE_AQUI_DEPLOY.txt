@@ -42,7 +42,7 @@ Configurar:
    Instance Type: Free
 
 Adicionar variáveis (Advanced):
-   GEMINI_API_KEY = AIzaSyBYpSeQqF5k3hyAuLPZw5V-suXwLnGj7XM
+   GEMINI_API_KEY = [SUA_CHAVE_AQUI]
    DATABASE_URL = sqlite:///./simulados.db
    SECRET_KEY = render-secret-2026-porto-velho
    ENVIRONMENT = production

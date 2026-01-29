@@ -48,7 +48,7 @@ echo    - Root Directory: api
 echo    - Environment: Docker
 echo.
 echo 3. Adicione variáveis de ambiente:
-echo    GEMINI_API_KEY=AIzaSyBYpSeQqF5k3hyAuLPZw5V-suXwLnGj7XM
+echo    GEMINI_API_KEY=[SUA_CHAVE_AQUI]
 echo    DATABASE_URL=sqlite:///./simulados.db
 echo    SECRET_KEY=render-secret-key-2026
 echo.
