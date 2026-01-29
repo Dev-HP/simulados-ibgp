@@ -7,7 +7,7 @@ Acesse o dashboard do Render e adicione estas variáveis no serviço da API:
 ### API Backend (simulados-ibgp)
 
 ```
-GEMINI_API_KEY=AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w
+GEMINI_API_KEY=[SUA_CHAVE_AQUI]
 ```
 
 **Como adicionar:**
@@ -16,7 +16,7 @@ GEMINI_API_KEY=AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w
 3. Vá em "Environment"
 4. Clique em "Add Environment Variable"
 5. Key: `GEMINI_API_KEY`
-6. Value: `AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w`
+6. Value: `[SUA_CHAVE_AQUI]`
 7. Clique em "Save Changes"
 8. O serviço vai fazer redeploy automaticamente
 

@@ -193,7 +193,7 @@ Verifique se as questões geradas têm:
 cat .env | grep GEMINI
 
 # Se não existir, criar:
-echo GEMINI_API_KEY=AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w >> .env
+echo GEMINI_API_KEY=[SUA_CHAVE_AQUI] >> .env
 ```
 
 ### Erro: "No topics found"

@@ -145,7 +145,7 @@ pip install requests
 copy .env.example .env
 
 # Editar e adicionar chave do Gemini
-# GEMINI_API_KEY=AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w
+# GEMINI_API_KEY=[SUA_CHAVE_AQUI]
 ```
 
 ### 3. Iniciar Banco de Dados

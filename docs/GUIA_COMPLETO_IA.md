@@ -14,7 +14,7 @@ Este sistema permite:
 
 A chave já está configurada:
 ```
-GEMINI_API_KEY=AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w
+GEMINI_API_KEY=[SUA_CHAVE_AQUI]
 ```
 
 ### Passo 2: Importar Questões Reais
@@ -130,7 +130,7 @@ Cada questão recebe um score de 0-100:
 **Solução:**
 1. Acesse Render Dashboard
 2. Vá em Environment do serviço API
-3. Adicione: `GEMINI_API_KEY=AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w`
+3. Adicione: `GEMINI_API_KEY=[SUA_CHAVE_AQUI]`
 4. Salve e aguarde redeploy
 
 ### Erro: "No topics found"

@@ -26,7 +26,7 @@ cd simulados-ibgp
 copy .env.example .env
 
 # Editar .env e adicionar chave do Gemini
-# GEMINI_API_KEY=AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w
+# GEMINI_API_KEY=[SUA_CHAVE_AQUI]
 ```
 
 ### Task 2: Instalar Dependências
@@ -577,7 +577,7 @@ curl -X POST "http://localhost:8000/api/generate-with-ai?topic_id=1&quantity=1" 
 2. Selecionar serviço: `simulados-ibgp`
 3. Environment → Add Environment Variable
 4. Key: `GEMINI_API_KEY`
-5. Value: `AIzaSyDVkUtP5CEkec1Du0nNA8h0ERoOsVG6g-w`
+5. Value: `[SUA_CHAVE_AQUI]`
 6. Save Changes
 7. Aguardar redeploy (~3-5 min)
 
