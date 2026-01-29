@@ -16,6 +16,32 @@ export default function Dashboard() {
     }
   })
 
+  const handleGerarProvaCompleta = async () => {
+    if (!confirm('🚀 Gerar TODAS as 60 questões da prova real do concurso?\n\n⏱️ Isso pode levar 15-20 minutos.\n\n✅ Clique OK para continuar.')) {
+      return
+    }
+
+    alert('🎯 Geração iniciada!\n\nO sistema vai gerar 60 questões seguindo o edital:\n• 30 Informática\n• 9 Português\n• 6 Matemática\n• 4 Raciocínio Lógico\n• 7 Legislação\n• 4 Conhecimentos Gerais\n\n⏱️ Aguarde 15-20 minutos.\n\nVocê pode fechar esta janela e voltar depois.')
+
+    try {
+      const token = localStorage.getItem('token')
+      
+      // Chamar endpoint especial (vamos criar)
+      const response = await axios.post(
+        `${API_URL}/api/gerar-prova-completa-concurso`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` }, timeout: 1200000 }
+      )
+      
+      if (response.status === 200) {
+        alert('🎉 SUCESSO!\n\n✅ Todas as questões foram geradas!\n\n🎯 Agora você pode fazer a prova completa.')
+        window.location.reload()
+      }
+    } catch (error) {
+      alert('⚠️ Erro na geração.\n\nUse o script Python:\npython gerar_prova_completa_concurso.py')
+    }
+  }
+
   const cards = [
     {
       title: '🎯 Prova Completa',
@@ -23,6 +49,14 @@ export default function Dashboard() {
       link: '/prova-completa',
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       highlight: true
+    },
+    {
+      title: '⚡ GERAR PROVA REAL',
+      description: 'Gera TODAS as 60 questões do concurso seguindo o edital (15-20 min)',
+      action: handleGerarProvaCompleta,
+      gradient: 'linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%)',
+      highlight: true,
+      special: true
     },
     {
       title: '🧠 Aprendizado Adaptativo',
@@ -146,44 +180,50 @@ export default function Dashboard() {
         gap: '2rem',
         marginBottom: '3rem'
       }}>
-        {cards.map((card, idx) => (
-          <Link
-            key={idx}
-            to={card.link}
-            style={{
-              textDecoration: 'none',
-              display: 'block',
-              transform: card.highlight ? 'scale(1.02)' : 'scale(1)',
-              transition: 'transform 0.3s ease'
-            }}
-          >
-            <div style={{
-              background: card.gradient,
-              padding: '2rem',
-              borderRadius: '16px',
-              color: 'white',
-              height: '100%',
-              boxShadow: card.highlight 
-                ? '0 20px 60px rgba(102, 126, 234, 0.4)' 
-                : '0 10px 30px rgba(0,0,0,0.2)',
-              cursor: 'pointer',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              {card.highlight && (
-                <div style={{
-                  position: 'absolute',
-                  top: '1rem',
-                  right: '1rem',
-                  background: 'rgba(255,255,255,0.3)',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '20px',
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold'
-                }}>
-                  ⭐ RECOMENDADO
-                </div>
-              )}
+        {cards.map((card, idx) => {
+          const CardWrapper = card.action ? 'div' : Link
+          const wrapperProps = card.action 
+            ? { onClick: card.action, style: { cursor: 'pointer' } }
+            : { to: card.link, style: { textDecoration: 'none' } }
+          
+          return (
+            <CardWrapper
+              key={idx}
+              {...wrapperProps}
+            >
+              <div style={{
+                background: card.gradient,
+                padding: '2rem',
+                borderRadius: '16px',
+                color: 'white',
+                height: '100%',
+                boxShadow: card.highlight 
+                  ? '0 20px 60px rgba(102, 126, 234, 0.4)' 
+                  : '0 10px 30px rgba(0,0,0,0.2)',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden',
+                transform: card.highlight ? 'scale(1.02)' : 'scale(1)',
+                transition: 'all 0.3s ease',
+                border: card.special ? '3px solid #FFD700' : 'none'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = card.highlight ? 'scale(1.02)' : 'scale(1)'}
+              >
+                {card.highlight && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    background: 'rgba(255,255,255,0.3)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '20px',
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {card.special ? '🔥 ESPECIAL' : '⭐ RECOMENDADO'}
+                  </div>
+                )}
               
               <h3 style={{
                 margin: '0 0 1rem 0',
@@ -214,8 +254,8 @@ export default function Dashboard() {
                 Acessar →
               </div>
             </div>
-          </Link>
-        ))}
+          </CardWrapper>
+        )})}
       </div>
 
       {/* Guia Rápido */}
