@@ -21,7 +21,7 @@ services:
         value: production
       - key: USE_POSTGRES
         value: "false"
-    healthCheckPath: /api/health
+    healthCheckPath: /health
 
   # Frontend Static Site
   - type: web
