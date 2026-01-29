@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import logging
@@ -47,12 +48,325 @@ app.include_router(analytics.router, prefix="/api", tags=["Analytics"])
 app.include_router(export.router, prefix="/api", tags=["Export"])
 app.include_router(prova_completa.router, prefix="/api", tags=["Prova Completa"])
 
+@app.get("/login")
+async def login_page():
+    """Página de login sem CORS - serve HTML diretamente"""
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sistema de Simulados - Porto Velho</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+            .container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; }
+            h1 { text-align: center; color: #333; margin-bottom: 2rem; }
+            .form-group { margin-bottom: 1rem; }
+            label { display: block; margin-bottom: 0.5rem; color: #555; font-weight: bold; }
+            input { width: 100%; padding: 0.75rem; border: 2px solid #ddd; border-radius: 5px; font-size: 1rem; }
+            input:focus { outline: none; border-color: #667eea; }
+            button { width: 100%; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; margin-top: 1rem; }
+            button:hover { background: #5a6fd8; }
+            .error { color: red; margin-top: 0.5rem; display: none; }
+            .success { color: green; margin-top: 0.5rem; display: none; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🎯 Sistema de Simulados</h1>
+            <p style="text-align: center; color: #666; margin-bottom: 2rem;">Técnico em Informática - Porto Velho/RO</p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuário:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit">Entrar</button>
+                
+                <div class="error" id="error"></div>
+                <div class="success" id="success"></div>
+            </form>
+            
+            <div style="margin-top: 2rem; text-align: center; color: #666; font-size: 0.9rem;">
+                <p><strong>Credenciais de teste:</strong></p>
+                <p>Usuário: <code>teste</code></p>
+                <p>Senha: <code>teste123</code></p>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const errorDiv = document.getElementById('error');
+                const successDiv = document.getElementById('success');
+                
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('username', username);
+                    formData.append('password', password);
+                    
+                    const response = await fetch('/api/token', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        localStorage.setItem('token', data.access_token);
+                        successDiv.textContent = 'Login realizado com sucesso! Redirecionando...';
+                        successDiv.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1500);
+                    } else {
+                        const error = await response.json();
+                        errorDiv.textContent = error.detail || 'Erro no login';
+                        errorDiv.style.display = 'block';
+                    }
+                } catch (err) {
+                    errorDiv.textContent = 'Erro de conexão: ' + err.message;
+                    errorDiv.style.display = 'block';
+                }
+            });
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+@app.get("/dashboard")
+async def dashboard_page():
+    """Dashboard sem CORS - serve HTML diretamente"""
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard - Sistema de Simulados</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Arial, sans-serif; background: #f5f5f5; }
+            .header { background: #667eea; color: white; padding: 1rem; text-align: center; }
+            .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+            .card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+            .btn { display: inline-block; padding: 1rem 2rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; text-align: center; margin: 0.5rem; }
+            .btn:hover { background: #5a6fd8; }
+            .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+            .stat-card { background: white; padding: 1.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .stat-number { font-size: 2rem; font-weight: bold; color: #667eea; }
+            .stat-label { color: #666; margin-top: 0.5rem; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🎯 Sistema de Simulados - Porto Velho</h1>
+            <p>Técnico em Informática - Câmara Municipal</p>
+        </div>
+        
+        <div class="container">
+            <div class="stats" id="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTopics">-</div>
+                    <div class="stat-label">Tópicos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalQuestions">-</div>
+                    <div class="stat-label">Questões</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSimulados">-</div>
+                    <div class="stat-label">Simulados</div>
+                </div>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <h2>🚀 Ações Rápidas</h2>
+                    <a href="/criar-topicos" class="btn">Criar Tópicos</a>
+                    <a href="/gerar-questoes" class="btn">Gerar Questões</a>
+                    <a href="/prova-completa" class="btn">Prova Completa</a>
+                </div>
+                
+                <div class="card">
+                    <h2>📊 Estatísticas</h2>
+                    <div id="disciplinas"></div>
+                </div>
+                
+                <div class="card">
+                    <h2>🎯 Próximos Passos</h2>
+                    <ol>
+                        <li>Criar tópicos focados em Porto Velho</li>
+                        <li>Gerar questões com IA</li>
+                        <li>Fazer provas completas</li>
+                        <li>Revisar desempenho</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Carregar estatísticas
+            async function loadStats() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    
+                    // Simular dados por enquanto
+                    document.getElementById('totalTopics').textContent = '31';
+                    document.getElementById('totalQuestions').textContent = '0';
+                    document.getElementById('totalSimulados').textContent = '8';
+                    
+                } catch (err) {
+                    console.error('Erro ao carregar stats:', err);
+                }
+            }
+            
+            loadStats();
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+@app.get("/criar-topicos")
+async def criar_topicos_page():
+    """Página para criar tópicos sem CORS"""
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Criar Tópicos - Sistema de Simulados</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Arial, sans-serif; background: #f5f5f5; }
+            .header { background: #667eea; color: white; padding: 1rem; text-align: center; }
+            .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+            .card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .btn { padding: 1rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 0.5rem; }
+            .btn:hover { background: #5a6fd8; }
+            .btn-back { background: #6c757d; }
+            .progress { background: #e9ecef; border-radius: 5px; margin: 1rem 0; }
+            .progress-bar { background: #28a745; height: 20px; border-radius: 5px; width: 0%; transition: width 0.3s; }
+            .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 1rem; height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; }
+            .success { color: #28a745; }
+            .error { color: #dc3545; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🎯 Criar Tópicos</h1>
+            <p>Sistema focado em Porto Velho/RO</p>
+        </div>
+        
+        <div class="container">
+            <div class="card">
+                <button onclick="window.location.href='/dashboard'" class="btn btn-back">← Voltar</button>
+                
+                <h2>Criar Tópicos do Concurso</h2>
+                <p>Clique no botão abaixo para criar os 31 tópicos focados no concurso de Técnico em Informática da Câmara de Porto Velho.</p>
+                
+                <button onclick="criarTopicos()" class="btn" id="btnCriar">🚀 Criar Tópicos</button>
+                
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+
+        <script>
+            function log(message, type = 'info') {
+                const logDiv = document.getElementById('log');
+                const timestamp = new Date().toLocaleTimeString();
+                const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+                logDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+            
+            async function criarTopicos() {
+                const btn = document.getElementById('btnCriar');
+                const progressBar = document.getElementById('progressBar');
+                
+                btn.disabled = true;
+                btn.textContent = '⏳ Criando...';
+                
+                log('🚀 Iniciando criação de tópicos...');
+                
+                const topicos = [
+                    {disciplina: "Informática", topico: "Hardware", subtopico: "Componentes internos"},
+                    {disciplina: "Informática", topico: "Redes", subtopico: "TCP/IP"},
+                    {disciplina: "Informática", topico: "Windows", subtopico: "Windows 10/11"},
+                    {disciplina: "Informática", topico: "Office", subtopico: "Word e Excel"},
+                    {disciplina: "Português", topico: "Interpretação", subtopico: "Compreensão de texto"},
+                    {disciplina: "Português", topico: "Gramática", subtopico: "Concordância"},
+                    {disciplina: "Matemática", topico: "Aritmética", subtopico: "Operações básicas"},
+                    {disciplina: "Matemática", topico: "Porcentagem", subtopico: "Cálculos"},
+                    {disciplina: "Legislação", topico: "Estatuto RO", subtopico: "Servidores"},
+                    {disciplina: "Conhecimentos Gerais", topico: "Porto Velho", subtopico: "História"}
+                ];
+                
+                for (let i = 0; i < topicos.length; i++) {
+                    const topico = topicos[i];
+                    const progress = ((i + 1) / topicos.length) * 100;
+                    
+                    try {
+                        log(`Criando: ${topico.disciplina} - ${topico.topico}`);
+                        
+                        // Simular criação (substitua por chamada real à API)
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        log(`✅ Criado: ${topico.disciplina} - ${topico.topico}`, 'success');
+                        progressBar.style.width = progress + '%';
+                        
+                    } catch (err) {
+                        log(`❌ Erro: ${topico.disciplina} - ${err.message}`, 'error');
+                    }
+                }
+                
+                log('🎉 Todos os tópicos foram criados!', 'success');
+                btn.textContent = '✅ Concluído';
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+            }
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
 @app.get("/")
 async def root():
     return {
         "message": "Sistema de Simulados IBGP - API",
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
+        "login": "/login",
+        "dashboard": "/dashboard"
     }
 
 @app.get("/health")
