@@ -27,7 +27,7 @@ services:
   - type: web
     name: simulados-web-porto-velho
     env: static
-    buildCommand: cd web && npm install && npm run build
+    buildCommand: cd web && npm install && npm run build && cp public/_redirects dist/_redirects
     staticPublishPath: ./web/dist
     plan: free
     region: oregon
