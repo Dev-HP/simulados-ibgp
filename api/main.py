@@ -396,9 +396,8 @@ async def initialize_system(db: Session = Depends(get_db)):
     """
     try:
         from models import User, Topic
-        from passlib.context import CryptContext
+        from auth import get_password_hash
         
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         results = {"topics": 0, "user": "exists"}
         
         # Criar tópicos se não existirem
@@ -477,7 +476,7 @@ async def initialize_system(db: Session = Depends(get_db)):
             user = User(
                 username="teste",
                 email="teste@portovelho.com",
-                hashed_password=pwd_context.hash("teste123"),
+                hashed_password=get_password_hash("teste123"),
                 full_name="Usuário Teste"
             )
             db.add(user)
