@@ -54,14 +54,24 @@ def test_system():
     # 4. Test HuggingFace generator
     print("\n4. Testando gerador HuggingFace...")
     try:
+        # Primeiro, buscar um tópico válido
+        topics_response = requests.get(f"{BASE_URL}/api/topics", headers=headers, timeout=10)
+        
+        if topics_response.status_code != 200:
+            print("❌ Não foi possível buscar tópicos")
+            return False
+        
+        topics = topics_response.json()
+        if not topics:
+            print("❌ Nenhum tópico encontrado")
+            return False
+        
+        topic_id = topics[0]["id"]
+        print(f"   Usando tópico ID: {topic_id}")
+        
         test = requests.post(
-            f"{BASE_URL}/api/generate-with-ai",
+            f"{BASE_URL}/api/generate-with-ai?topic_id={topic_id}&quantity=2&strategy=huggingface_only",
             headers=headers,
-            json={
-                "topic_id": 1,
-                "quantity": 2,
-                "strategy": "huggingface_only"
-            },
             timeout=60
         )
         
@@ -80,8 +90,17 @@ def test_system():
             else:
                 print(f"❌ Erro 400: {error}")
                 return False
+        elif test.status_code == 422:
+            error = test.json()
+            print(f"❌ Erro de validação (422)")
+            print(f"   Detalhes: {error}")
+            return False
         else:
             print(f"❌ Status: {test.status_code}")
+            try:
+                print(f"   Erro: {test.json()}")
+            except:
+                print(f"   Resposta: {test.text[:200]}")
             return False
             
     except Exception as e:
