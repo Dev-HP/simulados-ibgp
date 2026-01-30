@@ -8,7 +8,6 @@ from fastapi import HTTPException
 from models import Question, Topic, DifficultyLevel, QAStatus
 from services.qa_validator import QAValidator
 from services.rate_limiter import gemini_rate_limiter
-from services.quota_manager import quota_manager
 
 logger = logging.getLogger(__name__)
 
@@ -38,25 +37,17 @@ class GeminiQuestionGenerator:
         self._initialize_working_model()
     
     def _initialize_working_model(self):
-        """Encontra um modelo que funciona baseado na quota disponível"""
-        # Usar o quota manager para escolher o melhor modelo
-        best_model = quota_manager.get_best_model()
-        
-        try:
-            self.model = genai.GenerativeModel(best_model)
-            self.current_model = best_model
-            logger.info(f"Using Gemini model: {best_model}")
-            
-            # Verificar se realmente funciona
-            can_use, reason = quota_manager.can_make_request(best_model)
-            if not can_use:
-                logger.warning(f"Model {best_model} may have quota issues: {reason}")
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize model {best_model}: {e}")
-            # Fallback para o mais básico
-            self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
-            self.current_model = 'gemini-2.5-flash-lite'
+        """Encontra um modelo que funciona"""
+        for model_name in self.models:
+            try:
+                model = genai.GenerativeModel(model_name)
+                # Teste rápido
+                response = model.generate_content("OK")
+                if response.text:
+                    self.model = model
+                    self.current_model = model_name
+                    logger.info(f"Using Gemini model: {model_name}")
+                    return
             except Exception as e:
                 logger.warning(f"Model {model_name} failed: {str(e)[:100]}")
                 continue
