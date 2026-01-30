@@ -50,7 +50,16 @@ export default function AIGenerator() {
     }
   })
 
-  // Buscar status do Gemini
+  // Buscar status do Gemini (temporariamente desabilitado)
+  const geminiStats = {
+    status: "configured",
+    tier: "free",
+    requests_today: 0,
+    daily_limit: 1400,
+    restante: 1400
+  }
+  
+  /*
   const { data: geminiStats } = useQuery({
     queryKey: ['gemini-stats'],
     queryFn: async () => {
@@ -63,6 +72,7 @@ export default function AIGenerator() {
     },
     refetchInterval: 30000 // Atualizar a cada 30s
   })
+  */
 
   const handleImport = async () => {
     if (!importFile) return
