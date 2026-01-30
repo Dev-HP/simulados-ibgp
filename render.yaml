@@ -1,4 +1,17 @@
 services:
+  # PostgreSQL Database
+  - type: pserv
+    name: simulados-db
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./docker/Dockerfile.postgres
+    dockerContext: ./docker
+    disk:
+      name: simulados-db-disk
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 1
+
   # API Backend
   - type: web
     name: simulados-ibgp
@@ -9,7 +22,7 @@ services:
     region: oregon
     branch: main
     envVars:
-      - key: GEMINI_API_KEY
+      - key: HUGGINGFACE_API_KEY
         sync: false
       - key: DATABASE_URL
         fromDatabase:
@@ -20,7 +33,7 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: USE_POSTGRES
-        value: "false"
+        value: "true"
     healthCheckPath: /health
 
   # Frontend Static Site
