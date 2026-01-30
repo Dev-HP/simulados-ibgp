@@ -51,13 +51,7 @@ export default function AIGenerator() {
   })
 
   // Buscar status do Gemini (temporariamente desabilitado)
-  const geminiStats = {
-    status: "configured",
-    tier: "free",
-    requests_today: 0,
-    daily_limit: 1400,
-    restante: 1400
-  }
+  const geminiStats = null
   
   /*
   const { data: geminiStats } = useQuery({
