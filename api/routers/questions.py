@@ -132,28 +132,27 @@ async def generate_with_ai(
     quantity: int = 10,
     difficulty: Optional[str] = None,
     use_references: bool = True,
-    strategy: str = "auto",
+    strategy: str = "huggingface_only",
     db: Session = Depends(get_db)
 ):
     """
-    Gera questões usando IA híbrida (Gemini + HuggingFace).
+    Gera questões usando HuggingFace-only.
     
     Parâmetros:
     - topic_id: ID do tópico
     - quantity: Quantidade de questões a gerar
     - difficulty: FACIL, MEDIO ou DIFICIL (opcional)
     - use_references: Usar questões reais como referência
-    - strategy: auto, gemini_first, huggingface_first, gemini_only, huggingface_only
+    - strategy: Sempre "huggingface_only" (outros valores são ignorados)
     """
     try:
-        # Verificar se pelo menos uma API key está configurada
-        has_gemini = bool(os.getenv('GEMINI_API_KEY'))
+        # Verificar se HuggingFace API key está configurada
         has_huggingface = bool(os.getenv('HUGGINGFACE_API_KEY'))
         
-        if not has_gemini and not has_huggingface:
+        if not has_huggingface:
             raise HTTPException(
                 status_code=400,
-                detail="Nenhuma API key configurada. Configure GEMINI_API_KEY ou HUGGINGFACE_API_KEY no arquivo .env"
+                detail="HUGGINGFACE_API_KEY não configurada. Configure no arquivo .env"
             )
         
         # Buscar tópico
@@ -180,29 +179,30 @@ async def generate_with_ai(
                 for q in refs
             ]
         
-        # Gerar com IA híbrida
+        # Gerar com HuggingFace-only
         generator = HybridAIGenerator(db)
         questions = generator.generate_questions_with_ai(
             topic=topic,
             quantity=quantity,
             reference_questions=reference_questions,
             difficulty=difficulty,
-            strategy=strategy
+            strategy="huggingface_only"  # Sempre HuggingFace
         )
         
         # Status dos geradores
         status = generator.get_status()
         
         return {
-            "message": "Questions generated with hybrid AI successfully",
+            "message": "Questions generated with HuggingFace successfully",
             "total_generated": len(questions),
             "topic": topic.topico,
             "references_used": len(reference_questions),
-            "strategy_used": strategy,
+            "strategy_used": "huggingface_only",
             "generators_status": {
-                "gemini_available": status["gemini_available"],
+                "gemini_available": False,  # Sempre False
                 "huggingface_available": status["huggingface_available"],
-                "success_rates": status["success_rates"]
+                "success_rates": status["success_rates"],
+                "mode": "huggingface_only"
             }
         }
         
@@ -247,7 +247,7 @@ async def improve_question(
 @router.get("/ai-generators-status")
 async def get_ai_generators_status(db: Session = Depends(get_db)):
     """
-    Retorna status de todos os geradores de IA disponíveis.
+    Retorna status do gerador HuggingFace-only.
     """
     try:
         generator = HybridAIGenerator(db)
@@ -256,12 +256,13 @@ async def get_ai_generators_status(db: Session = Depends(get_db)):
         
         return {
             "status": "ok",
+            "mode": "huggingface_only",
             "generators": {
                 "gemini": {
-                    "available": status["gemini_available"],
-                    "api_key_configured": bool(os.getenv('GEMINI_API_KEY')),
-                    "test_result": test_results.get("gemini", {}),
-                    "success_rate": status["success_rates"]["gemini"]
+                    "available": False,
+                    "api_key_configured": False,
+                    "test_result": {"status": "disabled", "message": "Gemini disabled by configuration"},
+                    "success_rate": 0.0
                 },
                 "huggingface": {
                     "available": status["huggingface_available"],
@@ -272,9 +273,9 @@ async def get_ai_generators_status(db: Session = Depends(get_db)):
             },
             "stats": status["stats"],
             "recommendations": {
-                "best_for_informatica": "gemini_first" if status["gemini_available"] else "huggingface_only",
-                "best_for_portuguese": "huggingface_first" if status["huggingface_available"] else "gemini_only",
-                "most_reliable": "huggingface" if status["success_rates"]["huggingface"] > status["success_rates"]["gemini"] else "gemini"
+                "best_for_informatica": "huggingface_only",
+                "best_for_portuguese": "huggingface_only",
+                "most_reliable": "huggingface"
             }
         }
         
