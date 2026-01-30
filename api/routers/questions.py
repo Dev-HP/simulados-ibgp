@@ -8,7 +8,7 @@ from database import get_db
 from models import Question, Topic
 from schemas import QuestionResponse, QuestionCreate, GenerateBankRequest
 from services.question_generator import QuestionGenerator
-from services.gemini_generator import GeminiQuestionGenerator
+from services.hybrid_ai_generator import HybridAIGenerator
 from services.question_importer import QuestionImporter
 
 router = APIRouter()
@@ -132,23 +132,28 @@ async def generate_with_ai(
     quantity: int = 10,
     difficulty: Optional[str] = None,
     use_references: bool = True,
+    strategy: str = "auto",
     db: Session = Depends(get_db)
 ):
     """
-    Gera questões usando Gemini Pro baseadas em questões reais.
+    Gera questões usando IA híbrida (Gemini + HuggingFace).
     
     Parâmetros:
     - topic_id: ID do tópico
     - quantity: Quantidade de questões a gerar
     - difficulty: FACIL, MEDIO ou DIFICIL (opcional)
     - use_references: Usar questões reais como referência
+    - strategy: auto, gemini_first, huggingface_first, gemini_only, huggingface_only
     """
     try:
-        # Verificar se GEMINI_API_KEY está configurada
-        if not os.getenv('GEMINI_API_KEY'):
+        # Verificar se pelo menos uma API key está configurada
+        has_gemini = bool(os.getenv('GEMINI_API_KEY'))
+        has_huggingface = bool(os.getenv('HUGGINGFACE_API_KEY'))
+        
+        if not has_gemini and not has_huggingface:
             raise HTTPException(
                 status_code=400,
-                detail="GEMINI_API_KEY não configurada. Configure no arquivo .env"
+                detail="Nenhuma API key configurada. Configure GEMINI_API_KEY ou HUGGINGFACE_API_KEY no arquivo .env"
             )
         
         # Buscar tópico
@@ -175,20 +180,30 @@ async def generate_with_ai(
                 for q in refs
             ]
         
-        # Gerar com Gemini
-        generator = GeminiQuestionGenerator(db)
+        # Gerar com IA híbrida
+        generator = HybridAIGenerator(db)
         questions = generator.generate_questions_with_ai(
             topic=topic,
             quantity=quantity,
             reference_questions=reference_questions,
-            difficulty=difficulty
+            difficulty=difficulty,
+            strategy=strategy
         )
         
+        # Status dos geradores
+        status = generator.get_status()
+        
         return {
-            "message": "Questions generated with AI successfully",
+            "message": "Questions generated with hybrid AI successfully",
             "total_generated": len(questions),
             "topic": topic.topico,
-            "references_used": len(reference_questions)
+            "references_used": len(reference_questions),
+            "strategy_used": strategy,
+            "generators_status": {
+                "gemini_available": status["gemini_available"],
+                "huggingface_available": status["huggingface_available"],
+                "success_rates": status["success_rates"]
+            }
         }
         
     except Exception as e:
@@ -227,6 +242,44 @@ async def improve_question(
             
     except Exception as e:
         logger.error(f"Error improving question: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/ai-generators-status")
+async def get_ai_generators_status(db: Session = Depends(get_db)):
+    """
+    Retorna status de todos os geradores de IA disponíveis.
+    """
+    try:
+        generator = HybridAIGenerator(db)
+        status = generator.get_status()
+        test_results = generator.test_all_generators()
+        
+        return {
+            "status": "ok",
+            "generators": {
+                "gemini": {
+                    "available": status["gemini_available"],
+                    "api_key_configured": bool(os.getenv('GEMINI_API_KEY')),
+                    "test_result": test_results.get("gemini", {}),
+                    "success_rate": status["success_rates"]["gemini"]
+                },
+                "huggingface": {
+                    "available": status["huggingface_available"],
+                    "api_key_configured": bool(os.getenv('HUGGINGFACE_API_KEY')),
+                    "test_result": test_results.get("huggingface", {}),
+                    "success_rate": status["success_rates"]["huggingface"]
+                }
+            },
+            "stats": status["stats"],
+            "recommendations": {
+                "best_for_informatica": "gemini_first" if status["gemini_available"] else "huggingface_only",
+                "best_for_portuguese": "huggingface_first" if status["huggingface_available"] else "gemini_only",
+                "most_reliable": "huggingface" if status["success_rates"]["huggingface"] > status["success_rates"]["gemini"] else "gemini"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting AI generators status: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/gemini-stats")
