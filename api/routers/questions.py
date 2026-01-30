@@ -10,6 +10,7 @@ from schemas import QuestionResponse, QuestionCreate, GenerateBankRequest
 from services.question_generator import QuestionGenerator
 from services.hybrid_ai_generator import HybridAIGenerator
 from services.question_importer import QuestionImporter
+from services.gemini_generator import GeminiQuestionGenerator
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
