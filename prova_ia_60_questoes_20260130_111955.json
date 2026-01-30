@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "titulo": "Prova Completa - 60 Questões IA",
+    "concurso": "Técnico em Informática - IBGP Porto Velho/RO",
+    "data_geracao": "2026-01-30T11:19:55.541953",
+    "total_questoes": 0,
+    "gerador": "HuggingFace IA",
+    "distribuicao": {
+      "Informática": 30,
+      "Português": 10,
+      "Matemática": 8,
+      "Raciocínio Lógico": 7,
+      "Legislação": 5
+    }
+  },
+  "questoes": []
+}

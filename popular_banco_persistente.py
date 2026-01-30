@@ -101,21 +101,38 @@ def popular_banco_persistente():
                         topic_id = topics[0]['id']
                     
                     if topic_id:
-                        # Criar questão via API
+                        # Mapear dificuldade
+                        dificuldade_map = {
+                            "DifficultyLevel.FACIL": "fácil",
+                            "DifficultyLevel.MEDIO": "médio", 
+                            "DifficultyLevel.DIFICIL": "difícil",
+                            "FACIL": "fácil",
+                            "MEDIO": "médio",
+                            "DIFICIL": "difícil"
+                        }
+                        
+                        dificuldade = dificuldade_map.get(
+                            questao.get('dificuldade', 'MEDIO'), 
+                            "médio"
+                        )
+                        
+                        # Criar questão via API (sem topic_id, que não existe no schema)
                         questao_data = {
-                            "topic_id": topic_id,
                             "disciplina": questao['disciplina'],
                             "topico": questao['topico'],
+                            "subtopico": questao.get('subtopico', questao['topico']),
                             "enunciado": questao['enunciado'],
                             "alternativa_a": questao['alternativa_a'],
                             "alternativa_b": questao['alternativa_b'],
                             "alternativa_c": questao['alternativa_c'],
                             "alternativa_d": questao['alternativa_d'],
                             "gabarito": questao['gabarito'],
-                            "explicacao_detalhada": questao.get('explicacao', ''),
-                            "dificuldade": questao.get('dificuldade', 'MEDIO'),
+                            "explicacao_detalhada": questao.get('explicacao', 'Explicação gerada automaticamente.'),
+                            "referencia": "60 Questões Completas - Importação Persistente",
+                            "dificuldade": dificuldade,
                             "estimativa_tempo": questao.get('tempo_estimado', 3),
-                            "referencia": "60 Questões Completas - Importação Persistente"
+                            "keywords": [questao['disciplina'].lower(), questao['topico'].lower()],
+                            "seed": f"q_{i:03d}"
                         }
                         
                         response = requests.post(

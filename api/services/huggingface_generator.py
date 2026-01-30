@@ -50,7 +50,7 @@ class HuggingFaceQuestionGenerator:
         ]
         
         self.current_model = None
-        self.base_url = "https://api-inference.huggingface.co/models"
+        self.base_url = "https://router.huggingface.co/models"
         
         # Rate limiting (mais generoso que Gemini)
         self.last_request_time = 0
