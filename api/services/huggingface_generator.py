@@ -251,8 +251,7 @@ Gere a questão agora:"""
                 'topico': topic.topico,
                 'subtopico': topic.subtopico,
                 'dificuldade': DifficultyLevel.MEDIO,
-                'estimativa_tempo': 3,
-                'fonte': f'HuggingFace AI ({self.current_model})'
+                'estimativa_tempo': 3
             }
             
             # Enunciado
@@ -333,8 +332,7 @@ Gere a questão agora:"""
                     'gabarito': gabarito,
                     'explicacao_detalhada': explicacao or 'Explicação gerada automaticamente.',
                     'dificuldade': DifficultyLevel.MEDIO,
-                    'estimativa_tempo': 3,
-                    'fonte': f'HuggingFace AI ({self.current_model})'
+                    'estimativa_tempo': 3
                 }
         
         except Exception as e:
