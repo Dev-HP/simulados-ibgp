@@ -16,8 +16,9 @@ USE_POSTGRES = os.getenv("USE_POSTGRES", "false").lower() == "true"
 if USE_POSTGRES:
     DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 else:
-    # Usa SQLite para desenvolvimento local
-    DATABASE_URL = "sqlite:///./simulados.db"
+    # Usa SQLite - em produção usa volume persistente /data
+    db_path = os.getenv("DATABASE_PATH", "./simulados.db")
+    DATABASE_URL = f"sqlite:///{db_path}"
 
 engine = create_engine(
     DATABASE_URL,

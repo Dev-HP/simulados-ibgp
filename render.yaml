@@ -9,3 +9,7 @@ services:
         value: 3.11.0
       - key: REBUILD_TRIGGER
         value: "2026-01-30-17:00"
+    disk:
+      name: simulados-data
+      mountPath: /data
+      sizeGB: 1
