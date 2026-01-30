@@ -1,22 +1,43 @@
-# ✅ Status do Sistema - 30/01/2026 15:35
+# ✅ Status do Sistema - 30/01/2026 16:52
 
-## 🎯 Última Correção Aplicada (AGORA)
+## 🚨 DEPLOY EM ANDAMENTO
+
+**Status**: Aguardando Render fazer rebuild (5-10 minutos)
+
+**Problema Atual**: O Render ainda está usando código antigo que tem HTTP 410 error
+
+**Solução Aplicada**: 
+1. ✅ Código migrado para `InferenceClient` oficial
+2. ✅ Dependência `huggingface-hub` adicionada
+3. ✅ Dockerfile modificado para forçar rebuild
+4. ⏳ Aguardando Render detectar mudanças e fazer deploy
+
+**Próximos Passos**:
+1. Aguardar 5-10 minutos
+2. Verificar logs do Render para confirmar que instalou `huggingface-hub`
+3. Testar geração de questões novamente
+
+---
+
+## 🎯 Última Correção Aplicada
 
 ### ✅ HuggingFace HTTP 410 RESOLVIDO
 - **Problema**: Erro HTTP 410 - endpoint deprecado
 - **Causa**: Usando requisições HTTP diretas para API antiga
 - **Solução**: Migrado para `InferenceClient` oficial do HuggingFace
-- **Status**: ✅ Deploy em andamento (5-10 min)
+- **Status**: ✅ Código commitado, ⏳ Deploy em andamento
 
 **Mudanças**:
 1. ✅ Migrado para `huggingface_hub.InferenceClient`
 2. ✅ Modelos atualizados (Mistral, Llama 3.2, Gemma 2)
 3. ✅ Dependência `huggingface-hub==0.20.3` adicionada
 4. ✅ GitHub Actions workflow corrigido
+5. ✅ Dockerfile modificado para forçar rebuild
 
 **Arquivos Modificados**:
 - `api/services/huggingface_generator.py` - Usa InferenceClient agora
 - `api/requirements.txt` - Adicionado huggingface-hub
+- `api/Dockerfile` - Comentário para forçar rebuild
 - `.github/workflows/render-deploy.yml` - Corrigido multi-line commits
 
 ## 🧪 Como Testar
@@ -24,11 +45,11 @@
 ### Aguardar Deploy (5-10 minutos)
 O Render está fazendo deploy automaticamente agora.
 
-### Testar Localmente (Opcional)
-```bash
-pip install huggingface-hub python-dotenv
-python test_huggingface_fix.py
-```
+### Verificar Logs do Render
+1. Acesse: https://dashboard.render.com
+2. Selecione: `simulados-ibgp`
+3. Vá em: **Logs**
+4. Procure por: `Installing huggingface-hub`
 
 ### Testar Produção
 ```bash

@@ -8,7 +8,7 @@ import time
 import json
 import re
 from typing import List, Dict, Any, Optional
-from huggingface_hub import InferenceClient
+import requests
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
@@ -35,25 +35,29 @@ class HuggingFaceQuestionGenerator:
         if not self.api_key:
             raise ValueError("HUGGINGFACE_API_KEY não configurada")
         
-        # Usar InferenceClient oficial do HuggingFace
-        self.client = InferenceClient(token=self.api_key)
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
         
         # Modelos em ordem de prioridade (melhores para português e text generation)
         self.models = [
-            "mistralai/Mistral-7B-Instruct-v0.3",  # Excelente para instruções
-            "meta-llama/Llama-3.2-3B-Instruct",  # Bom equilíbrio
-            "google/gemma-2-2b-it",  # Multilingual, boa qualidade
-            "HuggingFaceH4/zephyr-7b-beta",  # Otimizado para chat
-            "tiiuae/falcon-7b-instruct"  # Fallback confiável
+            "mistralai/Mistral-7B-Instruct-v0.3",
+            "meta-llama/Llama-3.2-3B-Instruct",
+            "google/gemma-2-2b-it",
+            "HuggingFaceH4/zephyr-7b-beta",
+            "tiiuae/falcon-7b-instruct"
         ]
         
         self.current_model = None
+        # USAR NOVA URL DO HUGGINGFACE
+        self.base_url = "https://api-inference.huggingface.co/models"
         
-        # Rate limiting (mais generoso que Gemini)
+        # Rate limiting
         self.last_request_time = 0
-        self.min_interval = 1  # 1 segundo entre requests
+        self.min_interval = 2  # 2 segundos entre requests
         
-        logger.info("🤗 HuggingFace Generator initialized with InferenceClient")
+        logger.info("🤗 HuggingFace Generator initialized with direct HTTP")
     
     def _wait_for_rate_limit(self):
         """Rate limiting simples"""
@@ -64,53 +68,61 @@ class HuggingFaceQuestionGenerator:
         self.last_request_time = time.time()
     
     def _make_request(self, model_name: str, prompt: str, max_retries: int = 3) -> Optional[str]:
-        """Faz requisição para um modelo específico usando InferenceClient oficial"""
+        """Faz requisição HTTP direta para HuggingFace"""
+        url = f"{self.base_url}/{model_name}"
+        
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 1500,
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "do_sample": True,
+                "return_full_text": False
+            },
+            "options": {
+                "wait_for_model": True
+            }
+        }
         
         for attempt in range(max_retries):
             try:
                 self._wait_for_rate_limit()
                 
-                # Usar InferenceClient oficial do HuggingFace
-                response = self.client.text_generation(
-                    prompt,
-                    model=model_name,
-                    max_new_tokens=1500,
-                    temperature=0.7,
-                    top_p=0.9,
-                    do_sample=True,
-                    return_full_text=False
-                )
+                response = requests.post(url, headers=self.headers, json=payload, timeout=60)
                 
-                if response and len(response) > 100:  # Resposta válida
-                    logger.info(f"✅ Success with {model_name}")
-                    return response
+                if response.status_code == 200:
+                    result = response.json()
+                    if isinstance(result, list) and len(result) > 0:
+                        generated_text = result[0].get('generated_text', '')
+                        if len(generated_text) > 50:
+                            logger.info(f"✅ Success with {model_name}")
+                            return generated_text
                 
-            except Exception as e:
-                error_msg = str(e).lower()
-                
-                # Modelo carregando
-                if 'loading' in error_msg or '503' in error_msg:
-                    wait_time = min(10 * (attempt + 1), 30)
+                elif response.status_code == 503:
+                    wait_time = min(20 * (attempt + 1), 60)
                     logger.warning(f"⏳ Model {model_name} loading, waiting {wait_time}s...")
                     time.sleep(wait_time)
                     continue
                 
-                # Rate limit
-                elif 'rate limit' in error_msg or '429' in error_msg:
-                    wait_time = min(5 * (attempt + 1), 15)
+                elif response.status_code == 429:
+                    wait_time = min(10 * (attempt + 1), 30)
                     logger.warning(f"⚠️ Rate limit {model_name}, waiting {wait_time}s...")
                     time.sleep(wait_time)
                     continue
                 
-                # Timeout
-                elif 'timeout' in error_msg:
-                    logger.warning(f"⏰ Timeout for {model_name}, attempt {attempt + 1}")
-                    continue
-                
-                # Outros erros
                 else:
-                    logger.error(f"❌ Error with {model_name}: {str(e)[:200]}")
+                    logger.error(f"❌ HTTP {response.status_code} for {model_name}: {response.text[:200]}")
                     break
+                    
+            except requests.exceptions.Timeout:
+                logger.warning(f"⏰ Timeout for {model_name}, attempt {attempt + 1}")
+                if attempt < max_retries - 1:
+                    continue
+                break
+            except Exception as e:
+                logger.error(f"💥 Error with {model_name}: {str(e)[:200]}")
+                break
         
         return None
     
