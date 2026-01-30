@@ -30,32 +30,32 @@ class HuggingFaceQuestionGenerator:
         self.db = db
         self.validator = QAValidator()
         
-        # Configurar API key
-        self.api_key = api_key or os.getenv('HUGGINGFACE_API_KEY')
+        # Configurar API key (usar mesma env var)
+        self.api_key = api_key or os.getenv('HUGGINGFACE_API_KEY') or os.getenv('GROQ_API_KEY')
         if not self.api_key:
-            raise ValueError("HUGGINGFACE_API_KEY não configurada")
+            raise ValueError("HUGGINGFACE_API_KEY ou GROQ_API_KEY não configurada")
         
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
         
-        # Modelos PEQUENOS que funcionam no free tier
+        # Modelos Groq (gratuitos)
         self.models = [
-            "gpt2",
-            "distilgpt2",
-            "EleutherAI/gpt-neo-125M"
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "mixtral-8x7b-32768"
         ]
         
         self.current_model = None
-        # Usar Hugging Face Serverless Inference (free tier)
-        self.base_url = "https://api-inference.huggingface.co/models"
+        # Usar Groq API (gratuita e rápida)
+        self.base_url = "https://api.groq.com/openai/v1/chat/completions"
         
         # Rate limiting
         self.last_request_time = 0
         self.min_interval = 2  # 2 segundos entre requests
         
-        logger.info("🤗 HuggingFace Generator initialized with direct HTTP")
+        logger.info("🤗 HuggingFace Generator initialized with Groq API")
     
     def _wait_for_rate_limit(self):
         """Rate limiting simples"""
@@ -66,42 +66,29 @@ class HuggingFaceQuestionGenerator:
         self.last_request_time = time.time()
     
     def _make_request(self, model_name: str, prompt: str, max_retries: int = 3) -> Optional[str]:
-        """Faz requisição HTTP direta para HuggingFace"""
-        url = f"{self.base_url}/{model_name}"
+        """Faz requisição para Groq API"""
         
         payload = {
-            "inputs": prompt,
-            "parameters": {
-                "max_new_tokens": 1500,
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "do_sample": True,
-                "return_full_text": False
-            },
-            "options": {
-                "wait_for_model": True
-            }
+            "model": model_name,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1500
         }
         
         for attempt in range(max_retries):
             try:
                 self._wait_for_rate_limit()
                 
-                response = requests.post(url, headers=self.headers, json=payload, timeout=60)
+                response = requests.post(self.base_url, headers=self.headers, json=payload, timeout=60)
                 
                 if response.status_code == 200:
                     result = response.json()
-                    if isinstance(result, list) and len(result) > 0:
-                        generated_text = result[0].get('generated_text', '')
-                        if len(generated_text) > 50:
-                            logger.info(f"✅ Success with {model_name}")
-                            return generated_text
-                
-                elif response.status_code == 503:
-                    wait_time = min(20 * (attempt + 1), 60)
-                    logger.warning(f"⏳ Model {model_name} loading, waiting {wait_time}s...")
-                    time.sleep(wait_time)
-                    continue
+                    generated_text = result['choices'][0]['message']['content']
+                    if len(generated_text) > 50:
+                        logger.info(f"✅ Success with {model_name}")
+                        return generated_text
                 
                 elif response.status_code == 429:
                     wait_time = min(10 * (attempt + 1), 30)
