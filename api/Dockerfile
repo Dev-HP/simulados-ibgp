@@ -1,5 +1,6 @@
 FROM python:3.11-slim
 
+# Force rebuild 2026-01-30 16:50 - HuggingFace InferenceClient fix
 # Criar usuário não-root
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
