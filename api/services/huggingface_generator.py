@@ -8,7 +8,7 @@ import time
 import json
 import re
 from typing import List, Dict, Any, Optional
-import requests
+from huggingface_hub import InferenceClient
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
@@ -35,29 +35,25 @@ class HuggingFaceQuestionGenerator:
         if not self.api_key:
             raise ValueError("HUGGINGFACE_API_KEY não configurada")
         
-        self.headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
+        # Usar InferenceClient oficial do HuggingFace
+        self.client = InferenceClient(token=self.api_key)
         
-        # Modelos em ordem de prioridade (melhores para português)
+        # Modelos em ordem de prioridade (melhores para português e text generation)
         self.models = [
-            "microsoft/DialoGPT-medium",  # Bom para diálogo estruturado
-            "pierreguillou/gpt2-small-portuguese",  # Especializado em português
+            "mistralai/Mistral-7B-Instruct-v0.3",  # Excelente para instruções
+            "meta-llama/Llama-3.2-3B-Instruct",  # Bom equilíbrio
             "google/gemma-2-2b-it",  # Multilingual, boa qualidade
-            "HeyLucasLeao/gpt-neo-small-portuguese",  # Português nativo
-            "meta-llama/Llama-3.2-1B-Instruct"  # Fallback confiável
+            "HuggingFaceH4/zephyr-7b-beta",  # Otimizado para chat
+            "tiiuae/falcon-7b-instruct"  # Fallback confiável
         ]
         
         self.current_model = None
-        # Usar Serverless Inference API (gratuita)
-        self.base_url = "https://api-inference.huggingface.co/models"
         
         # Rate limiting (mais generoso que Gemini)
         self.last_request_time = 0
         self.min_interval = 1  # 1 segundo entre requests
         
-        logger.info("🤗 HuggingFace Generator initialized")
+        logger.info("🤗 HuggingFace Generator initialized with InferenceClient")
     
     def _wait_for_rate_limit(self):
         """Rate limiting simples"""
@@ -68,58 +64,53 @@ class HuggingFaceQuestionGenerator:
         self.last_request_time = time.time()
     
     def _make_request(self, model_name: str, prompt: str, max_retries: int = 3) -> Optional[str]:
-        """Faz requisição para um modelo específico"""
-        url = f"{self.base_url}/{model_name}"
-        
-        payload = {
-            "inputs": prompt,
-            "parameters": {
-                "max_new_tokens": 1500,  # Suficiente para 1 questão
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "do_sample": True,
-                "return_full_text": False
-            }
-        }
+        """Faz requisição para um modelo específico usando InferenceClient oficial"""
         
         for attempt in range(max_retries):
             try:
                 self._wait_for_rate_limit()
                 
-                response = requests.post(url, headers=self.headers, json=payload, timeout=30)
+                # Usar InferenceClient oficial do HuggingFace
+                response = self.client.text_generation(
+                    prompt,
+                    model=model_name,
+                    max_new_tokens=1500,
+                    temperature=0.7,
+                    top_p=0.9,
+                    do_sample=True,
+                    return_full_text=False
+                )
                 
-                if response.status_code == 200:
-                    result = response.json()
-                    if isinstance(result, list) and len(result) > 0:
-                        generated_text = result[0].get('generated_text', '')
-                        if len(generated_text) > 100:  # Resposta válida
-                            logger.info(f"✅ Success with {model_name}")
-                            return generated_text
+                if response and len(response) > 100:  # Resposta válida
+                    logger.info(f"✅ Success with {model_name}")
+                    return response
                 
-                elif response.status_code == 503:
-                    # Modelo carregando
+            except Exception as e:
+                error_msg = str(e).lower()
+                
+                # Modelo carregando
+                if 'loading' in error_msg or '503' in error_msg:
                     wait_time = min(10 * (attempt + 1), 30)
                     logger.warning(f"⏳ Model {model_name} loading, waiting {wait_time}s...")
                     time.sleep(wait_time)
                     continue
                 
-                elif response.status_code == 429:
-                    # Rate limit
+                # Rate limit
+                elif 'rate limit' in error_msg or '429' in error_msg:
                     wait_time = min(5 * (attempt + 1), 15)
                     logger.warning(f"⚠️ Rate limit {model_name}, waiting {wait_time}s...")
                     time.sleep(wait_time)
                     continue
                 
+                # Timeout
+                elif 'timeout' in error_msg:
+                    logger.warning(f"⏰ Timeout for {model_name}, attempt {attempt + 1}")
+                    continue
+                
+                # Outros erros
                 else:
-                    logger.error(f"❌ HTTP {response.status_code} for {model_name}: {response.text[:200]}")
+                    logger.error(f"❌ Error with {model_name}: {str(e)[:200]}")
                     break
-                    
-            except requests.exceptions.Timeout:
-                logger.warning(f"⏰ Timeout for {model_name}, attempt {attempt + 1}")
-                continue
-            except Exception as e:
-                logger.error(f"💥 Error with {model_name}: {str(e)[:100]}")
-                break
         
         return None
     
@@ -399,10 +390,12 @@ Gere a questão agora:"""
                 "status": "success" if result else "failed",
                 "model_used": self.current_model,
                 "response_preview": result[:100] if result else None,
-                "available_models": len(self.models)
+                "available_models": len(self.models),
+                "api_key_configured": bool(self.api_key)
             }
         except Exception as e:
             return {
                 "status": "error",
-                "error": str(e)
+                "error": str(e),
+                "api_key_configured": bool(self.api_key)
             }
