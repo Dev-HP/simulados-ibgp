@@ -40,17 +40,15 @@ class HuggingFaceQuestionGenerator:
             "Content-Type": "application/json"
         }
         
-        # Modelos em ordem de prioridade (melhores para português e text generation)
+        # Modelos PEQUENOS que funcionam no free tier
         self.models = [
-            "mistralai/Mistral-7B-Instruct-v0.3",
-            "meta-llama/Llama-3.2-3B-Instruct",
-            "google/gemma-2-2b-it",
-            "HuggingFaceH4/zephyr-7b-beta",
-            "tiiuae/falcon-7b-instruct"
+            "gpt2",
+            "distilgpt2",
+            "EleutherAI/gpt-neo-125M"
         ]
         
         self.current_model = None
-        # USAR NOVA URL DO HUGGINGFACE
+        # Usar Hugging Face Serverless Inference (free tier)
         self.base_url = "https://api-inference.huggingface.co/models"
         
         # Rate limiting
