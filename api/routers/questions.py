@@ -216,26 +216,61 @@ async def improve_question(
     db: Session = Depends(get_db)
 ):
     """
-    Melhora uma questão existente usando Gemini Pro.
+    Melhora uma questão existente usando HuggingFace.
     """
     try:
-        if not os.getenv('GEMINI_API_KEY'):
+        if not os.getenv('HUGGINGFACE_API_KEY'):
             raise HTTPException(
                 status_code=400,
-                detail="GEMINI_API_KEY não configurada"
+                detail="HUGGINGFACE_API_KEY não configurada"
             )
         
         question = db.query(Question).filter(Question.id == question_id).first()
         if not question:
             raise HTTPException(status_code=404, detail="Question not found")
         
-        generator = GeminiQuestionGenerator(db)
-        improved = generator.improve_existing_question(question)
+        # Usar HybridAIGenerator para melhorar a questão
+        generator = HybridAIGenerator(db)
         
-        if improved:
+        # Buscar tópico da questão
+        topic = db.query(Topic).filter(
+            Topic.disciplina == question.disciplina,
+            Topic.topico == question.topico
+        ).first()
+        
+        if not topic:
+            # Criar tópico se não existir
+            topic = Topic(
+                disciplina=question.disciplina,
+                topico=question.topico,
+                subtopico=question.subtopico
+            )
+            db.add(topic)
+            db.commit()
+            db.refresh(topic)
+        
+        # Gerar uma versão melhorada da questão
+        improved_questions = generator.generate_questions_with_ai(
+            topic=topic,
+            quantity=1,
+            reference_questions=[{
+                'enunciado': question.enunciado,
+                'alternativa_a': question.alternativa_a,
+                'alternativa_b': question.alternativa_b,
+                'alternativa_c': question.alternativa_c,
+                'alternativa_d': question.alternativa_d,
+                'gabarito': question.gabarito,
+                'explicacao_detalhada': question.explicacao_detalhada
+            }],
+            difficulty=question.dificuldade.value if question.dificuldade else "MEDIO",
+            strategy="huggingface_only"
+        )
+        
+        if improved_questions:
             return {
-                "message": "Question improved successfully",
-                "question_id": question_id
+                "message": "Question improved with HuggingFace successfully",
+                "question_id": question_id,
+                "improved_count": len(improved_questions)
             }
         else:
             raise HTTPException(status_code=500, detail="Failed to improve question")
@@ -337,10 +372,13 @@ async def generate_complete_exam(db: Session = Depends(get_db)):
     Tempo estimado: 15-20 minutos
     """
     try:
-        if not os.getenv('GEMINI_API_KEY'):
+        # Verificar se HuggingFace API key está configurada
+        has_huggingface = bool(os.getenv('HUGGINGFACE_API_KEY'))
+        
+        if not has_huggingface:
             raise HTTPException(
                 status_code=400,
-                detail="GEMINI_API_KEY não configurada. Configure no Render."
+                detail="HUGGINGFACE_API_KEY não configurada. Configure no arquivo .env"
             )
         
         # Distribuição exata do edital
@@ -407,7 +445,7 @@ async def generate_complete_exam(db: Session = Depends(get_db)):
             }
         }
         
-        generator = GeminiQuestionGenerator(db)
+        generator = HybridAIGenerator(db)
         total_geradas = 0
         relatorio = {}
         
@@ -450,12 +488,13 @@ async def generate_complete_exam(db: Session = Depends(get_db)):
                             for q in refs
                         ]
                     
-                    # Gerar questões
+                    # Gerar questões usando HuggingFace-only
                     questions = generator.generate_questions_with_ai(
                         topic=topic,
                         quantity=quantidade,
                         reference_questions=reference_questions,
-                        difficulty="MEDIO"
+                        difficulty="MEDIO",
+                        strategy="huggingface_only"  # Usar apenas HuggingFace
                     )
                     
                     geradas = len(questions)
@@ -464,19 +503,20 @@ async def generate_complete_exam(db: Session = Depends(get_db)):
                     
                     logger.info(f"  {topico}: {geradas}/{quantidade} questões")
                     
-                    # Aguardar para respeitar rate limit (15 req/min)
+                    # Aguardar para respeitar rate limit do HuggingFace
                     import time
-                    time.sleep(5)
+                    time.sleep(2)  # Menor delay para HuggingFace
                     
                 except Exception as e:
                     logger.error(f"Erro ao gerar {topico}: {str(e)}")
                     relatorio[disciplina][topico] = 0
         
         return {
-            "message": "Prova completa gerada com sucesso!",
+            "message": "Prova completa gerada com HuggingFace successfully!",
             "total_generated": total_geradas,
             "expected": 60,
             "percentage": round((total_geradas/60)*100, 1),
+            "strategy_used": "huggingface_only",
             "report": relatorio
         }
         
