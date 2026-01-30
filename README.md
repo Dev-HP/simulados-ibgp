@@ -52,10 +52,20 @@ python scripts/deploy/deploy_render.bat
 │   ├── database/         # Scripts de banco
 │   └── tests/            # Scripts de teste
 │
+├── config/                # Arquivos de configuração
+│   ├── render.yaml       # Config Render
+│   ├── docker-compose.yml
+│   └── Makefile
+│
 ├── docs/                  # Documentação
-├── docs_old/             # Docs antigas (ignorar)
-├── tests_old/            # Testes antigos (ignorar)
-└── output/               # Arquivos gerados
+├── data/                  # Dados de exemplo
+├── output/               # Arquivos gerados
+│
+├── test_final.py         # Teste principal
+├── init_database.py      # Inicializar banco
+├── README.md             # Este arquivo
+├── QUICKSTART.md         # Início rápido
+└── STATUS.md             # Status do sistema
 ```
 
 ## 🔑 Variáveis de Ambiente
