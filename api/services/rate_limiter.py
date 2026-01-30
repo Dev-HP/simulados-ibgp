@@ -113,8 +113,8 @@ class RateLimiter:
         
         return None
 
-# Instância global do rate limiter
+# Instância global do rate limiter (MAIS CONSERVADOR)
 gemini_rate_limiter = RateLimiter(
-    requests_per_minute=55,  # Margem de segurança (60 - 5)
-    requests_per_day=1400    # Margem de segurança (1500 - 100)
+    requests_per_minute=10,  # MUITO conservador para free tier
+    requests_per_day=100     # MUITO conservador para free tier
 )

@@ -37,7 +37,7 @@ def api_health_check():
 # Agora importar database e models
 try:
     from database import engine, get_db, Base
-    from routers import syllabus, questions, simulados, users, analytics, export, prova_completa, adaptive_learning
+    from routers import syllabus, questions, simulados, users, analytics, export, prova_completa, adaptive_learning, gemini
     from models import User
     from auth import get_current_user
     
@@ -66,6 +66,7 @@ app.include_router(analytics.router, prefix="/api", tags=["Analytics"])
 app.include_router(export.router, prefix="/api", tags=["Export"])
 app.include_router(prova_completa.router, prefix="/api", tags=["Prova Completa"])
 app.include_router(adaptive_learning.router, prefix="/api", tags=["Adaptive Learning"])
+app.include_router(gemini.router, prefix="/api/gemini", tags=["Gemini"])
 
 @app.get("/login")
 async def login_page():

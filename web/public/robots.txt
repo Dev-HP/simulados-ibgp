@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://simulados-ibgp-1.onrender.com/sitemap.xml

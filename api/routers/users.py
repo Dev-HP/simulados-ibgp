@@ -6,7 +6,7 @@ from datetime import timedelta
 from database import get_db
 from models import User
 from schemas import UserCreate, UserResponse
-from auth import get_password_hash, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from auth import get_password_hash, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
 
 router = APIRouter()
 
@@ -54,3 +54,7 @@ async def login(
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Retorna informações do usuário atual"""
+    return current_user

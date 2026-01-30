@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from models import Question, Topic, DifficultyLevel, QAStatus
 from services.qa_validator import QAValidator
 from services.rate_limiter import gemini_rate_limiter
+from services.quota_manager import quota_manager
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,80 @@ class GeminiQuestionGenerator:
             raise ValueError("GEMINI_API_KEY não configurada")
         
         genai.configure(api_key=api_key)
-        # Usar gemini-2.5-flash (modelo gratuito)
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        # Tentar modelos em ordem de prioridade (fallback automático)
+        self.models = [
+            'gemini-2.5-flash-lite',
+            'gemini-2.0-flash-lite',
+            'gemini-flash-lite-latest'
+        ]
+        self.current_model = None
+        self._initialize_working_model()
+    
+    def _initialize_working_model(self):
+        """Encontra um modelo que funciona baseado na quota disponível"""
+        # Usar o quota manager para escolher o melhor modelo
+        best_model = quota_manager.get_best_model()
+        
+        try:
+            self.model = genai.GenerativeModel(best_model)
+            self.current_model = best_model
+            logger.info(f"Using Gemini model: {best_model}")
+            
+            # Verificar se realmente funciona
+            can_use, reason = quota_manager.can_make_request(best_model)
+            if not can_use:
+                logger.warning(f"Model {best_model} may have quota issues: {reason}")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize model {best_model}: {e}")
+            # Fallback para o mais básico
+            self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
+            self.current_model = 'gemini-2.5-flash-lite'
+            except Exception as e:
+                logger.warning(f"Model {model_name} failed: {str(e)[:100]}")
+                continue
+        
+        raise ValueError("Nenhum modelo Gemini disponível. Verifique API key e quota.")
+    
+    def _generate_with_retry(self, prompt: str, max_retries: int = 3):
+        """Gera conteúdo com retry automático e fallback de modelos"""
+        last_error = None
+        
+        for attempt in range(max_retries):
+            for model_name in self.models:
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    response = model.generate_content(prompt)
+                    
+                    if response.text:
+                        if model_name != self.current_model:
+                            logger.info(f"Switched to model: {model_name}")
+                            self.current_model = model_name
+                            self.model = model
+                        return response
+                        
+                except Exception as e:
+                    last_error = e
+                    error_msg = str(e).lower()
+                    
+                    if "quota" in error_msg or "429" in error_msg:
+                        logger.warning(f"Quota exceeded for {model_name}, trying next model...")
+                        continue
+                    elif "expired" in error_msg or "invalid" in error_msg:
+                        logger.error(f"API key issue with {model_name}: {e}")
+                        continue
+                    else:
+                        logger.error(f"Unexpected error with {model_name}: {e}")
+                        continue
+            
+            # Se chegou aqui, todos os modelos falharam nesta tentativa
+            if attempt < max_retries - 1:
+                wait_time = (attempt + 1) * 10  # Backoff exponencial
+                logger.warning(f"All models failed, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                time.sleep(wait_time)
+        
+        # Todas as tentativas falharam
+        raise Exception(f"Failed to generate content after {max_retries} attempts. Last error: {last_error}")
     
     def generate_questions_with_ai(
         self,
@@ -52,8 +125,8 @@ class GeminiQuestionGenerator:
                 logger.error(f"Rate limit exceeded: {error_msg}")
                 raise HTTPException(status_code=429, detail=error_msg)
             
-            # Gerar com Gemini
-            response = self.model.generate_content(prompt)
+            # Gerar com Gemini (com retry automático)
+            response = self._generate_with_retry(prompt)
             
             # Registrar requisição
             gemini_rate_limiter.record_request()

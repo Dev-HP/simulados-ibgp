@@ -183,11 +183,12 @@ def test_prova_templates(token):
     print_info("Testando templates de prova...")
     
     try:
-        headers = {"Authorization": f"Bearer {token}"}
-        response = requests.get(f"{API_URL}/api/prova-completa/templates", headers=headers, timeout=10)
+        # Endpoint não requer autenticação
+        response = requests.get(f"{API_URL}/api/templates-provas", timeout=10)
         
         if response.status_code == 200:
-            templates = response.json()
+            data = response.json()
+            templates = data.get("templates", [])
             print_success(f"Templates encontrados: {len(templates)}")
             
             for t in templates:
