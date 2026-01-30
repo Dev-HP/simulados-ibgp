@@ -146,13 +146,11 @@ async def generate_with_ai(
     - strategy: Sempre "huggingface_only" (outros valores são ignorados)
     """
     try:
-        # Verificar se HuggingFace API key está configurada
-        has_huggingface = bool(os.getenv('HUGGINGFACE_API_KEY'))
-        
-        if not has_huggingface:
+        # Verificar se Groq API key está configurada
+        if not os.getenv('GROQ_API_KEY'):
             raise HTTPException(
                 status_code=400,
-                detail="HUGGINGFACE_API_KEY não configurada. Configure no arquivo .env"
+                detail="GROQ_API_KEY não configurada. Configure no arquivo .env"
             )
         
         # Buscar tópico
@@ -219,10 +217,10 @@ async def improve_question(
     Melhora uma questão existente usando HuggingFace.
     """
     try:
-        if not os.getenv('HUGGINGFACE_API_KEY'):
+        if not os.getenv('GROQ_API_KEY'):
             raise HTTPException(
                 status_code=400,
-                detail="HUGGINGFACE_API_KEY não configurada"
+                detail="GROQ_API_KEY não configurada"
             )
         
         question = db.query(Question).filter(Question.id == question_id).first()
@@ -299,9 +297,9 @@ async def get_ai_generators_status(db: Session = Depends(get_db)):
                     "test_result": {"status": "disabled", "message": "Gemini disabled by configuration"},
                     "success_rate": 0.0
                 },
-                "huggingface": {
+                "groq": {
                     "available": status["huggingface_available"],
-                    "api_key_configured": bool(os.getenv('HUGGINGFACE_API_KEY')),
+                    "api_key_configured": bool(os.getenv('GROQ_API_KEY')),
                     "test_result": test_results.get("huggingface", {}),
                     "success_rate": status["success_rates"]["huggingface"]
                 }
@@ -372,13 +370,11 @@ async def generate_complete_exam(db: Session = Depends(get_db)):
     Tempo estimado: 15-20 minutos
     """
     try:
-        # Verificar se HuggingFace API key está configurada
-        has_huggingface = bool(os.getenv('HUGGINGFACE_API_KEY'))
-        
-        if not has_huggingface:
+        # Verificar se Groq API key está configurada
+        if not os.getenv('GROQ_API_KEY'):
             raise HTTPException(
                 status_code=400,
-                detail="HUGGINGFACE_API_KEY não configurada. Configure no arquivo .env"
+                detail="GROQ_API_KEY não configurada. Configure no arquivo .env"
             )
         
         # Distribuição exata do edital

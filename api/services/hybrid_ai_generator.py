@@ -26,16 +26,16 @@ class HybridAIGenerator:
         # Inicializar apenas HuggingFace
         self.huggingface_generator = None
         
-        # Tentar inicializar HuggingFace
+        # Tentar inicializar Groq
         try:
-            if os.getenv('HUGGINGFACE_API_KEY'):
+            if os.getenv('GROQ_API_KEY'):
                 self.huggingface_generator = HuggingFaceQuestionGenerator(db)
-                logger.info("✅ HuggingFace generator initialized (HF-only mode)")
+                logger.info("✅ Groq generator initialized")
             else:
-                raise ValueError("❌ HUGGINGFACE_API_KEY não configurada")
+                raise ValueError("❌ GROQ_API_KEY não configurada")
         except Exception as e:
-            logger.error(f"❌ HuggingFace initialization failed: {str(e)[:100]}")
-            raise ValueError("❌ Gerador HuggingFace não disponível! Configure HUGGINGFACE_API_KEY")
+            logger.error(f"❌ Groq initialization failed: {str(e)[:100]}")
+            raise ValueError("❌ Gerador Groq não disponível! Configure GROQ_API_KEY")
         
         # Estatísticas de uso (simplificadas)
         self.stats = {

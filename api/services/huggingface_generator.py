@@ -30,10 +30,10 @@ class HuggingFaceQuestionGenerator:
         self.db = db
         self.validator = QAValidator()
         
-        # Configurar API key (usar mesma env var)
-        self.api_key = api_key or os.getenv('HUGGINGFACE_API_KEY') or os.getenv('GROQ_API_KEY')
+        # Configurar API key do Groq
+        self.api_key = api_key or os.getenv('GROQ_API_KEY')
         if not self.api_key:
-            raise ValueError("HUGGINGFACE_API_KEY ou GROQ_API_KEY não configurada")
+            raise ValueError("GROQ_API_KEY não configurada. Configure no arquivo .env")
         
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
