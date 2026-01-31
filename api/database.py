@@ -18,6 +18,12 @@ if USE_POSTGRES:
 else:
     # Usa SQLite - em produção usa volume persistente /data
     db_path = os.getenv("DATABASE_PATH", "./simulados.db")
+    
+    # Criar diretório se não existir
+    db_dir = os.path.dirname(db_path)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
+    
     DATABASE_URL = f"sqlite:///{db_path}"
 
 engine = create_engine(
