@@ -55,7 +55,23 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+
+# Middleware adicional para garantir CORS em todas as respostas
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+
+class CORSHeaderMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
+
+app.add_middleware(CORSHeaderMiddleware)
 
 # Incluir routers
 app.include_router(syllabus.router, prefix="/api", tags=["Syllabus"])
