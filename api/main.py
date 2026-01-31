@@ -34,14 +34,14 @@ def api_health_check():
     """Health check da API - não depende de nada"""
     return {"status": "healthy"}
 
-# Agora importar database e models
+# Importar database e models
+from database import engine, get_db, Base
+from routers import syllabus, questions, simulados, users, analytics, export, prova_completa, adaptive_learning
+from models import User
+from auth import get_current_user
+
+# Criar tabelas
 try:
-    from database import engine, get_db, Base
-    from routers import syllabus, questions, simulados, users, analytics, export, prova_completa, adaptive_learning
-    from models import User
-    from auth import get_current_user
-    
-    # Criar tabelas
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
 except Exception as e:
