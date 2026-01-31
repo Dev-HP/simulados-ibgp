@@ -364,9 +364,9 @@ Gere a questão agora:"""
             # QA simplificado - SEMPRE aprovar questões geradas
             try:
                 qa_result = self.validator.validate(question_data)
-                question_data['qa_score'] = max(qa_result.get('score', 0.8), 0.75)  # Mínimo 75
+                question_data['qa_score'] = max(qa_result.get('score', 0.8), 0.70)  # Mínimo 70
             except:
-                question_data['qa_score'] = 0.85  # Score padrão alto
+                question_data['qa_score'] = 0.80  # Score padrão alto
             
             # SEMPRE aprovar questões geradas (para uso imediato em simulados)
             question_data['qa_status'] = QAStatus.APPROVED
