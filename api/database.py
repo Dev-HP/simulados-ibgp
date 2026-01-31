@@ -3,27 +3,19 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Tenta usar PostgreSQL se disponível, senão usa SQLite
-POSTGRES_USER = os.getenv("POSTGRES_USER", "simulados_user")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
-POSTGRES_DB = os.getenv("POSTGRES_DB", "simulados_db")
+# Usa DATABASE_URL se disponível (Supabase/PostgreSQL), senão SQLite
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Verifica se deve usar PostgreSQL ou SQLite
-USE_POSTGRES = os.getenv("USE_POSTGRES", "false").lower() == "true"
-
-if USE_POSTGRES:
-    DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
-else:
-    # Usa SQLite - em produção usa volume persistente /data
+if not DATABASE_URL:
+    # Fallback para SQLite local
     db_path = os.getenv("DATABASE_PATH", "./simulados.db")
-    
-    # Criar diretório se não existir
     db_dir = os.path.dirname(db_path)
-    if db_dir and not os.path.exists(db_dir):
-        os.makedirs(db_dir, exist_ok=True)
-    
+    if db_dir:
+        try:
+            os.makedirs(db_dir, exist_ok=True)
+        except PermissionError:
+            # Se não conseguir criar, usa diretório atual
+            db_path = "./simulados.db"
     DATABASE_URL = f"sqlite:///{db_path}"
 
 engine = create_engine(
