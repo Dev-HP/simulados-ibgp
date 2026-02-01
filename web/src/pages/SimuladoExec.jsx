@@ -15,17 +15,23 @@ export default function SimuladoExec() {
   }, [id])
 
   const loadSimulado = async () => {
-    const response = await axios.get(`${API_URL}/api/simulados/${id}`)
+    const token = localStorage.getItem('token')
+    const response = await axios.get(`${API_URL}/api/simulados/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
     setSimulado(response.data)
   }
 
   const handleAnswer = async () => {
     if (!selectedAnswer) return
 
+    const token = localStorage.getItem('token')
     const question = simulado.questions[currentQuestion]
     const response = await axios.post(`${API_URL}/api/simulados/${id}/answer`, {
       question_id: question.id,
       resposta: selectedAnswer
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
     })
 
     setFeedback(response.data)
