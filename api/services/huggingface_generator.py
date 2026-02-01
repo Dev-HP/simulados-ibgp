@@ -150,7 +150,7 @@ class HuggingFaceQuestionGenerator:
                     continue
                 
                 # Parse
-                questions_data = self._parse_response(response_text, topic)
+                questions_data = self._parse_response(response_text, topic, difficulty)
                 
                 # Salvar primeira questão válida
                 for q_data in questions_data:
@@ -216,7 +216,7 @@ Gere a questão agora:"""
 
         return prompt
     
-    def _parse_response(self, response_text: str, topic: Topic) -> List[Dict]:
+    def _parse_response(self, response_text: str, topic: Topic, difficulty: Optional[DifficultyLevel] = None) -> List[Dict]:
         """Parser robusto para resposta do HuggingFace"""
         questions = []
         
@@ -227,13 +227,13 @@ Gere a questão agora:"""
                 for part in parts[1:]:
                     if '---FIM---' in part:
                         part = part.split('---FIM---')[0]
-                        question_data = self._extract_question_data(part, topic)
+                        question_data = self._extract_question_data(part, topic, difficulty)
                         if question_data:
                             questions.append(question_data)
             
             # Se não encontrou o padrão, tentar parsing livre
             if not questions:
-                question_data = self._extract_free_form_question(response_text, topic)
+                question_data = self._extract_free_form_question(response_text, topic, difficulty)
                 if question_data:
                     questions.append(question_data)
         
@@ -242,7 +242,7 @@ Gere a questão agora:"""
         
         return questions
     
-    def _extract_question_data(self, text: str, topic: Topic) -> Optional[Dict]:
+    def _extract_question_data(self, text: str, topic: Topic, difficulty: Optional[DifficultyLevel] = None) -> Optional[Dict]:
         """Extrai dados da questão do texto estruturado"""
         try:
             question_data = {
@@ -250,7 +250,7 @@ Gere a questão agora:"""
                 'disciplina': topic.disciplina,
                 'topico': topic.topico,
                 'subtopico': topic.subtopico,
-                'dificuldade': DifficultyLevel.MEDIO,
+                'dificuldade': difficulty or DifficultyLevel.MEDIO,
                 'estimativa_tempo': 3,
                 'referencia': f"Edital IBGP - {topic.disciplina}: {topic.topico}"  # Adicionar referência automática
             }
@@ -293,7 +293,7 @@ Gere a questão agora:"""
         
         return None
     
-    def _extract_free_form_question(self, text: str, topic: Topic) -> Optional[Dict]:
+    def _extract_free_form_question(self, text: str, topic: Topic, difficulty: Optional[DifficultyLevel] = None) -> Optional[Dict]:
         """Tenta extrair questão de texto livre (fallback)"""
         try:
             # Procurar por padrões comuns de questão
@@ -333,7 +333,7 @@ Gere a questão agora:"""
                     **alternativas,
                     'gabarito': gabarito,
                     'explicacao_detalhada': explicacao or 'Explicação gerada automaticamente.',
-                    'dificuldade': DifficultyLevel.MEDIO,
+                    'dificuldade': difficulty or DifficultyLevel.MEDIO,
                     'estimativa_tempo': 3,
                     'referencia': f"Edital IBGP - {topic.disciplina}: {topic.topico}"  # Adicionar referência automática
                 }
