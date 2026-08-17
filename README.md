@@ -1,142 +1,91 @@
-# 🎯 Sistema de Simulados IBGP
+# Simulados IBGP
 
-Sistema de simulados adaptativos para concurso de Técnico em Informática - Câmara Municipal de Porto Velho/RO.
+> Sistema de simulados adaptativos para preparação de Técnico em Informática, com frontend React, API FastAPI, banco PostgreSQL e geração/organização de questões.
 
-## 🚀 Quick Start
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### Desenvolvimento Local
+## Para quem é
+
+O projeto foi criado para apoiar estudos para o concurso de Técnico em Informática da Câmara Municipal de Porto Velho/RO. Ele é um protótipo educacional: use dados e credenciais de demonstração, nunca informações pessoais de estudantes.
+
+## Como experimentar
+
+- **Frontend:** [simulados-ibgp-1.onrender.com](https://simulados-ibgp-1.onrender.com/)
+- **API:** [documentação OpenAPI](https://simulados-ibgp.onrender.com/docs)
+
+A tela inicial exige autenticação. Quando a instância de demonstração estiver ativa, use somente a conta de teste informada nas configurações do ambiente. Não reutilize a senha de demonstração em produção.
+
+## Fluxo principal
+
+1. O estudante acessa a aplicação e inicia um simulado.
+2. A API entrega questões e registra respostas.
+3. O sistema calcula desempenho e pode adaptar a próxima seleção de questões.
+4. O usuário acompanha resultado e histórico.
+
+Inclua screenshots do fluxo antes de divulgar o projeto como case completo: tela inicial, questão, resultado e painel de evolução.
+
+## Stack
+
+| Camada | Tecnologias |
+|---|---|
+| Backend | FastAPI, SQLAlchemy, PostgreSQL e Redis. |
+| Frontend | React, Vite e TailwindCSS. |
+| Conteúdo | Integração opcional com HuggingFace para geração/apoio às questões. |
+| Operação | Docker, Render e scripts de teste/deploy. |
+
+## Execução local
 
 ```bash
-# 1. Instalar dependências
-cd api && pip install -r requirements.txt
-cd ../web && npm install
+git clone https://github.com/Dev-HP/simulados-ibgp.git
+cd simulados-ibgp
 
-# 2. Configurar .env
+# Backend
+cd api
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 cp .env.example .env
-# Editar .env com suas credenciais
+uvicorn main:app --reload
 
-# 3. Iniciar backend
-cd api && uvicorn main:app --reload
-
-# 4. Iniciar frontend
-cd web && npm run dev
+# Em outro terminal, frontend
+cd web
+npm install
+npm run dev
 ```
 
-### Deploy Render
+Preencha o `.env` com valores locais. Nunca publique chaves, senhas reais ou tokens no repositório.
+
+## Testes
 
 ```bash
-# Deploy automático via GitHub
-git push origin main
-
-# Ou manual
-python scripts/deploy/deploy_render.bat
-```
-
-## 📁 Estrutura do Projeto
-
-```
-├── api/                    # Backend FastAPI
-│   ├── routers/           # Endpoints da API
-│   ├── services/          # Lógica de negócio
-│   ├── models.py          # Modelos do banco
-│   └── main.py            # App principal
-│
-├── web/                    # Frontend React
-│   ├── src/
-│   │   ├── pages/         # Páginas
-│   │   └── App.jsx        # App principal
-│   └── vite.config.js
-│
-├── scripts/               # Scripts utilitários
-│   ├── deploy/           # Scripts de deploy
-│   ├── database/         # Scripts de banco
-│   └── tests/            # Scripts de teste
-│
-├── config/                # Arquivos de configuração
-│   ├── render.yaml       # Config Render
-│   ├── docker-compose.yml
-│   └── Makefile
-│
-├── docs/                  # Documentação
-├── data/                  # Dados de exemplo
-├── output/               # Arquivos gerados
-│
-├── test_final.py         # Teste principal
-├── init_database.py      # Inicializar banco
-├── README.md             # Este arquivo
-├── QUICKSTART.md         # Início rápido
-└── STATUS.md             # Status do sistema
-```
-
-## 🔑 Variáveis de Ambiente
-
-### Obrigatórias
-
-```env
-# HuggingFace (geração de questões)
-HUGGINGFACE_API_KEY=hf_your_key_here
-
-# Database
-POSTGRES_HOST=localhost
-POSTGRES_DB=simulados_db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_password
-
-# JWT
-SECRET_KEY=your_secret_key_here
-```
-
-### Opcionais
-
-```env
-# Redis (cache)
-REDIS_HOST=localhost
-REDIS_PORT=6379
-```
-
-## 🧪 Testes
-
-```bash
-# Teste completo do sistema
 python test_final.py
-
-# Testes unitários
 cd api && pytest
-
-# Teste de integração
 python scripts/tests/test_complete_flow.py
 ```
 
-## 📚 Documentação
+## Estrutura
 
-- **API**: https://simulados-ibgp.onrender.com/docs
-- **Arquitetura**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- **Deploy**: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
-- **API Reference**: [docs/API.md](docs/API.md)
+```text
+api/       backend FastAPI, rotas, serviços e modelos
+web/       frontend React
+scripts/   utilitários de banco, deploy e testes
+config/    Render, Docker Compose e Makefile
+docs/      arquitetura, deploy e referência da API
+data/      dados de exemplo
+```
 
-## 🛠️ Tecnologias
+## Documentação
 
-### Backend
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- HuggingFace API
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [Deploy](docs/DEPLOYMENT.md)
+- [API](docs/API.md)
+- [Quick start](QUICKSTART.md)
+- [Status](STATUS.md)
 
-### Frontend
-- React
-- Vite
-- TailwindCSS
+## Licença
 
-## 🔗 Links
+O projeto está sob a licença [MIT](LICENSE). Contribuições devem preservar a separação entre dados de demonstração e dados reais.
 
-- **Produção**: https://simulados-ibgp.onrender.com
-- **Frontend**: https://simulados-ibgp-1.onrender.com
-- **GitHub**: https://github.com/Dev-HP/simulados-ibgp
+## Autor
 
-## 📝 Licença
-
-MIT License - veja [LICENSE](LICENSE) para detalhes.
-
-## 👥 Contribuindo
-
-Veja [CONTRIBUTING.md](CONTRIBUTING.md) para guidelines.
+**Hélio Paulo Leite de Lima** — [GitHub](https://github.com/Dev-HP)
